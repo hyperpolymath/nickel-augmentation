@@ -1,0 +1,10 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+= nickel-augmentation Roadmap
+
+Nickel configuration language augmentation tools. Completion: 35%.
+
+== Goals
+* [ ] Complete core functionality
+* [ ] Add test coverage
+* [ ] Write documentation
+* [ ] Stable 1.0 release
