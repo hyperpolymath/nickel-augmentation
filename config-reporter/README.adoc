@@ -1,0 +1,11 @@
+= Nickel Config Reporter
+image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
+
+
+:toc: auto
+
+Configuration reporting and validation using Nickel language.
+
+== License
+
+PMPL-1.0-or-later

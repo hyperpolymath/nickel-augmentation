@@ -1,0 +1,14 @@
+= nickel-augmentation
+// SPDX-License-Identifier: PMPL-1.0-or-later
+:author: Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
+
+Nickel configuration language tools and extensions.
+
+== Components
+
+* `augmented/` - Nickel augmentation tools
+* `config-reporter/` - Configuration reporting and analysis
+
+== License
+
+PMPL-1.0-or-later

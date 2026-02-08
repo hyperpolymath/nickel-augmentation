@@ -1,0 +1,366 @@
+= RSR Template Repository
+image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
+
+
+
+
+:toc: left
+:toclevels: 3
+:sectnums:
+:icons: font
+:source-highlighter: rouge
+
+A canonical template for creating **Rhodium Standard Repository (RSR)** compliant projects. This repository provides governance infrastructure, CI/CD automation, and standards enforcement for the Hyperpolymath ecosystem.
+
+== What This Is
+
+This is **not** an application - it is a **template repository** that provides:
+
+[cols="1,3"]
+|===
+|Component |Purpose
+
+|Governance
+|CODE_OF_CONDUCT, CONTRIBUTING, SECURITY policies with enforcement and appeals processes
+
+|Language Policy
+|Strict allowlist/denylist for languages and tools (see <<language-policy>>)
+
+|CI/CD Automation
+|GitHub Actions + GitLab CI for security scanning, quality gates, and policy enforcement
+
+|Task Automation
+|Comprehensive justfile with 40+ recipes for build, test, lint, docs, and compliance
+
+|Package Management
+|Guix (primary) and Nix (fallback) configurations for reproducible builds
+|===
+
+== Quick Start
+
+[source,bash]
+----
+# Clone this template
+git clone https://github.com/hyperpolymath/nickel-augmented my-project
+cd my-project
+
+# Customize placeholders
+sed -i 's/{{PROJECT}}/my-project/g' **/*
+sed -i 's/{{OWNER}}/your-username/g' **/*
+
+# Run validation
+just validate-rsr
+----
+
+[[language-policy]]
+== Language Policy (Hyperpolymath Standard)
+
+=== Allowed Languages & Tools
+
+[cols="1,2,2"]
+|===
+|Language/Tool |Use Case |Notes
+
+|**ReScript**
+|Primary application code
+|Compiles to JS, type-safe
+
+|**Deno**
+|Runtime & package management
+|Replaces Node/npm/bun
+
+|**Rust**
+|Performance-critical, systems, WASM
+|Preferred for CLI tools
+
+|**Gleam**
+|Backend services
+|Runs on BEAM or compiles to JS
+
+|**Tauri 2.0+**
+|Mobile apps (iOS/Android)
+|Rust backend + web UI
+
+|**Dioxus**
+|Mobile apps (native UI)
+|Pure Rust, React-like
+
+|**Nickel**
+|Configuration language
+|Typed configs with contracts (see <<nickel-boundary>>)
+
+|**Guile Scheme**
+|State/meta files
+|STATE.scm, META.scm, ECOSYSTEM.scm
+
+|**Julia**
+|Batch scripts, data processing
+|Per RSR specification
+
+|**OCaml**
+|AffineScript compiler
+|Language-specific
+
+|**Ada**
+|Safety-critical systems
+|Where required
+
+|**Python**
+|SaltStack only
+|No other Python permitted
+
+|**Bash/POSIX**
+|Scripts, automation
+|Keep minimal
+|===
+
+=== Banned - Do Not Use
+
+[cols="1,1,2"]
+|===
+|Banned |Replacement |Reason
+
+|TypeScript
+|ReScript
+|Type-safe alternative with better soundness
+
+|Node.js / npm / bun / pnpm / yarn
+|Deno
+|Secure-by-default, no node_modules
+
+|Go
+|Rust
+|Memory safety without GC
+
+|Python (general)
+|ReScript/Rust
+|SaltStack exception only
+
+|Java / Kotlin
+|Rust/Tauri/Dioxus
+|Rust-first mobile development
+
+|Swift
+|Tauri/Dioxus
+|Cross-platform from single codebase
+
+|React Native / Flutter
+|Tauri/Dioxus
+|FOSS with independent governance
+|===
+
+[[nickel-boundary]]
+=== Nickel Augmentation Boundary
+
+Nickel "augments" RSR templates by providing typed, validated configuration where contracts and merging semantics add value. This section clarifies what Nickel handles versus what remains in other systems.
+
+==== What Nickel Does (In Scope)
+
+[cols="1,2,2"]
+|===
+|Use Case |Example |Why Nickel
+
+|**Build configuration**
+|`build.ncl`
+|Contracts validate targets and dependencies
+
+|**CI/CD pipelines**
+|`ci.ncl` → generates YAML
+|Merge semantics for matrix builds
+
+|**Infrastructure config**
+|`infra.ncl`
+|Type-safe secrets references, environment configs
+
+|**Cross-cutting concerns**
+|Shared linting/formatting rules
+|Single source of truth with overrides
+
+|**Complex validation**
+|Config schemas with invariants
+|Contracts catch errors before runtime
+|===
+
+==== What Nickel Does NOT Do (Out of Scope)
+
+[cols="1,1,2"]
+|===
+|Responsibility |Stays In |Reason
+
+|**State/meta governance**
+|Guile Scheme
+|`STATE.scm`, `META.scm`, `ECOSYSTEM.scm` are Scheme by RSR spec
+
+|**Package definitions**
+|Guix/Nix
+|`guix.scm`, `flake.nix` use native languages
+
+|**Runtime configuration**
+|Environment vars / JSON
+|Nickel is build-time, not runtime
+
+|**Application logic**
+|ReScript/Rust
+|Nickel is declarative config, not imperative code
+
+|**Simple key-value configs**
+|TOML/JSON
+|Nickel overhead not justified for flat configs
+|===
+
+==== Boundary Rules
+
+1. **Nickel generates, Scheme governs** - Nickel may produce CI/build artifacts, but `STATE.scm` remains the source of truth for project state
+2. **Contracts, not code** - If you're writing loops or complex logic, use ReScript/Rust instead
+3. **Augments, doesn't replace** - Nickel configs may import/reference Guix/Nix outputs but don't replace them
+4. **Validation at build-time** - Nickel catches config errors during build, not at runtime
+
+== Repository Structure
+
+[source]
+----
+.
+├── .claude/
+│   └── CLAUDE.md              # AI assistant language policy
+├── .github/
+│   ├── ISSUE_TEMPLATE/        # Bug, feature, docs, question templates
+│   └── workflows/             # 8 GitHub Actions workflows
+│       ├── codeql.yml         # Security vulnerability scanning
+│       ├── quality.yml        # Secrets, permissions, file checks
+│       ├── rsr-antipattern.yml# Language policy enforcement
+│       ├── wellknown-enforcement.yml
+│       ├── guix-nix-policy.yml
+│       ├── scorecard.yml      # OpenSSF Scorecard
+│       ├── security-policy.yml
+│       └── mirror.yml
+├── docs/
+│   ├── ROADMAP.adoc           # Implementation phases
+│   └── CITATIONS.adoc         # BibTeX, APA, MLA formats
+├── CODE_OF_CONDUCT.md         # Community standards + appeals
+├── CONTRIBUTING.md            # Branch naming, commit conventions
+├── LICENSE.txt                # PMPL-1.0 OR PMPL-1.0-or-later
+├── SECURITY.md                # Responsible disclosure policy
+├── .editorconfig              # Language-specific indent rules
+├── .gitlab-ci.yml             # GitLab CI pipeline
+└── justfile                   # 40+ automation recipes
+----
+
+== CI/CD Enforcement
+
+=== GitHub Actions Workflows
+
+[horizontal]
+**rsr-antipattern.yml**:: Blocks commits containing TypeScript, Go, npm lockfiles; validates Deno presence
+**quality.yml**:: TruffleHog secret scanning, file permission checks, EditorConfig validation
+**codeql.yml**:: CodeQL security analysis for vulnerabilities
+**scorecard.yml**:: OpenSSF Scorecard security assessment
+**wellknown-enforcement.yml**:: RFC 9116 security.txt validation, DNS security checks
+**guix-nix-policy.yml**:: Enforces Guix as primary, Nix as fallback
+
+=== GitLab CI Pipeline
+
+* **Security scanning**: Trivy, GitLeaks, Semgrep, cargo-audit, cargo-deny, mix-audit
+* **Language linting**: rustfmt, clippy (Rust); mix format, credo (Elixir)
+* **Testing**: cargo test, mix test
+* **Building**: cargo build --release, mix compile
+
+== Justfile Recipes
+
+Core automation via https://just.systems[just]:
+
+[source,bash]
+----
+# Show all recipes
+just
+
+# Build & test
+just build
+just test
+just quality
+
+# Documentation
+just docs
+just cookbook
+
+# Security
+just security
+just sbom
+
+# RSR compliance
+just validate-rsr
+just validate-state
+
+# Package managers
+just guix-shell
+just nix-shell
+
+# Container (nerdctl + Wolfi)
+just container-build
+just container-run
+----
+
+See `just help <recipe>` for details or `just combinations` for matrix options.
+
+== Security
+
+* All GitHub Actions are **SHA-pinned** (supply chain security)
+* **No MD5/SHA1** for security purposes (SHA256+ only)
+* **HTTPS-only** enforcement across all URLs
+* TruffleHog secret scanning in CI
+* OpenSSF Scorecard integration
+* Planned: SLSA Level 3, Sigstore signing, SBOM automation
+
+See link:SECURITY.md[SECURITY.md] for responsible disclosure policy.
+
+== Package Management
+
+[cols="1,1,3"]
+|===
+|Priority |Manager |Purpose
+
+|Primary
+|**Guix**
+|`guix.scm` - Reproducible, declarative builds
+
+|Fallback
+|**Nix**
+|`flake.nix` - When Guix unavailable
+
+|JS Dependencies
+|**Deno**
+|`deno.json` imports - No node_modules
+|===
+
+== License
+
+Dual-licensed under:
+
+* **PMPL-1.0** - Permissive option
+* **PMPL-1.0-or-later** - Copyleft option
+
+With the **Palimpsest Covenant** philosophical overlay encouraging derivative works to acknowledge origins.
+
+== Contributing
+
+See link:CONTRIBUTING.md[CONTRIBUTING.md] for:
+
+* Branch naming conventions (`feature/`, `fix/`, `docs/`)
+* Commit message format (conventional commits)
+* PR requirements and review process
+* CLA information
+
+== Roadmap
+
+See link:docs/ROADMAP.adoc[docs/ROADMAP.adoc] for implementation phases:
+
+* **v0.1-v0.2** (Complete): RSR compliance core, security hardening, CI/CD
+* **v0.3** (Planned): Language-specific template branches (Rust, ReScript, Elixir, Ada)
+* **v0.4** (Planned): RSR compliance checker CLI, template scaffolding
+* **v0.5** (Planned): Ecosystem integration, Guix channel publishing
+* **v1.0** (Future): Full documentation, migration guides, enterprise patterns
+
+== References
+
+* https://github.com/hyperpolymath/rhodium-standard-repositories[RSR Framework]
+* https://github.com/hyperpolymath/elegant-STATE[elegant-STATE]
+* https://rhodium.sh[Rhodium Standard Documentation]
