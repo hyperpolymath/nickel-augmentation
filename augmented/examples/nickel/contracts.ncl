@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: 2024 Hyperpolymath
-# SPDX-License-Identifier: MIT OR AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2024 Jonathan D.A. Jewell (hyperpolymath)
+# SPDX-License-Identifier: MIT OR PMPL-1.0-or-later
 
 # Shared contracts for RSR-compliant Nickel configurations
 # These contracts enforce the Hyperpolymath language policy at config-time
@@ -57,7 +57,7 @@
   SpdxLicense = std.contract.from_predicate (fun license =>
     std.array.elem license [
       "MIT",
-      "AGPL-3.0-or-later",
+      "PMPL-1.0-or-later",
       "Apache-2.0",
       "GPL-3.0-or-later",
       "LGPL-3.0-or-later",

@@ -1,5 +1,5 @@
-# SPDX-FileCopyrightText: 2024 Hyperpolymath
-# SPDX-License-Identifier: MIT OR AGPL-3.0-or-later
+# SPDX-FileCopyrightText: 2024 Jonathan D.A. Jewell (hyperpolymath)
+# SPDX-License-Identifier: MIT OR PMPL-1.0-or-later
 
 # Build configuration example for RSR-compliant projects
 # Demonstrates: contracts validating targets and dependencies
