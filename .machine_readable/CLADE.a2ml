@@ -1,0 +1,26 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Clade declaration — part of the gv-clade-index registry
+# See: https://github.com/hyperpolymath/gv-clade-index
+
+[identity]
+uuid = "a01c5c73-1d20-546f-96f7-26581da08255"
+primary-forge = "github"
+primary-owner = "hyperpolymath"
+canonical-name = "nickel-augmentation"
+prefixed-name = "dx-nickel-augmentation"
+
+[clade]
+primary = "dx"
+secondary = []
+assigned = "2026-03-16"
+rationale = ""
+
+[forges]
+github = "hyperpolymath/nickel-augmentation"
+gitlab = "hyperpolymath/nickel-augmentation"
+bitbucket = "hyperpolymath/nickel-augmentation"
+
+[lineage]
+type = "monorepo"
+parent = "Monorepo — Nickel language augmentation tools"
+born = "2026-03-16"
