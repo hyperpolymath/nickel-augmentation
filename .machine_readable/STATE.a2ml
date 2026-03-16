@@ -1,14 +1,21 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
 # STATE.a2ml — Project state checkpoint
-# Converted from STATE.scm on 2026-03-15
 
 [metadata]
 project = "nickel-augmentation"
-version = "0.1.0"
-last-updated = "2026-03-15"
+version = "0.2.0"
+last-updated = "2026-03-16"
 status = "active"
 
 [project-context]
 name = "nickel-augmentation"
-completion-percentage = 0
-phase = "In development"
+completion-percentage = 55
+phase = "Library and tooling build-out"
+
+[components]
+augmented = "Library modules (rsr, security, ci, infra, prelude) + examples typechecking"
+config-reporter = "CLI auditor with 9 rules, JSON output, exit codes"
+contractiles = "K9 templates (kennel/yard/hunt) and must/trust/dust/lust stable"
+
+[recent-changes]
+"2026-03-16" = "Created augmented/lib/ (5 modules), built config-reporter CLI, fixed SPDX typos, wired Justfile"

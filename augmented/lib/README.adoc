@@ -1,0 +1,61 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
+= Nickel Augmentation Library
+:toc: left
+:icons: font
+
+Reusable Nickel contracts and utilities for RSR-compliant projects.
+
+== Modules
+
+[cols="1,2"]
+|===
+|Module |Purpose
+
+|`rsr.ncl`
+|Core RSR contracts: language policy, SPDX validation, repository metadata
+
+|`security.ncl`
+|Security contracts: secure hashes, HTTPS enforcement, SHA-pinned actions
+
+|`ci.ncl`
+|CI/CD contracts: job definitions, matrix builds, workflow validation
+
+|`infra.ncl`
+|Infrastructure contracts: services, environments, containers, secrets
+
+|`prelude.ncl`
+|Re-exports all modules for convenience
+|===
+
+== Usage
+
+Import individual modules:
+
+[source,nickel]
+----
+let rsr = import "./lib/rsr.ncl" in
+let security = import "./lib/security.ncl" in
+
+{
+  project = {
+    name | rsr.NonEmptyString = "my-project",
+    license | rsr.SpdxLicense = "PMPL-1.0-or-later",
+    url | security.HttpsUrl = "https://github.com/hyperpolymath/my-project",
+  },
+}
+----
+
+Or import the prelude for everything:
+
+[source,nickel]
+----
+let aug = import "./lib/prelude.ncl" in
+
+{
+  target | aug.rsr.BuildTarget = {
+    name = "backend",
+    language = "gleam",
+    entry_point = "src/app.gleam",
+  },
+}
+----

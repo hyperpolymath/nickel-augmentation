@@ -3,7 +3,6 @@
 
 # Build configuration example for RSR-compliant projects
 # Demonstrates: contracts validating targets and dependencies
-
 let contracts = import "./contracts.ncl" in
 
 {

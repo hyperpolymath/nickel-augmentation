@@ -50,22 +50,30 @@ info:
 # BUILD & COMPILE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Build the project (debug mode)
+# Typecheck all Nickel library modules
 build *args:
-    @echo "Building {{project}} (debug)..."
-    # TODO: Replace with your build command
-    @echo "Build complete"
+    @echo "Typechecking {{project}} library..."
+    nickel typecheck augmented/lib/rsr.ncl
+    nickel typecheck augmented/lib/security.ncl
+    nickel typecheck augmented/lib/ci.ncl
+    nickel typecheck augmented/lib/infra.ncl
+    nickel typecheck augmented/lib/prelude.ncl
+    @echo "All library modules typecheck OK"
 
-# Build in release mode with optimizations
+# Typecheck library + examples
 build-release *args:
-    @echo "Building {{project}} (release)..."
-    # TODO: Replace with your release build command
-    @echo "Release build complete"
+    @echo "Typechecking {{project}} (full)..."
+    just build
+    nickel typecheck augmented/examples/nickel/contracts.ncl
+    nickel typecheck augmented/examples/nickel/build.ncl
+    nickel typecheck augmented/examples/nickel/ci.ncl
+    nickel typecheck augmented/examples/nickel/infra.ncl
+    @echo "Full typecheck OK"
 
-# Build and watch for changes (requires entr or similar)
+# Watch .ncl files and re-typecheck on change (requires entr)
 build-watch:
-    @echo "Watching for changes..."
-    # TODO: Customize file patterns for your language
+    @echo "Watching .ncl files for changes..."
+    find augmented/ -name '*.ncl' | entr -c just build
 
 # Clean build artifacts [reversible: rebuild with `just build`]
 clean:
@@ -80,21 +88,30 @@ clean-all: clean
 # TEST & QUALITY
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Run all tests
+# Run all tests — typecheck + export validation
 test *args:
     @echo "Running tests..."
-    # TODO: Replace with your test command
+    just build-release
+    @echo "Exporting examples to validate output..."
+    nickel export augmented/examples/nickel/build.ncl > /dev/null
+    nickel export augmented/examples/nickel/infra.ncl > /dev/null
     @echo "Tests passed!"
 
-# Run tests with verbose output
+# Run tests with verbose output (shows exported JSON)
 test-verbose:
     @echo "Running tests (verbose)..."
-    # TODO: Replace with verbose test command
+    just build-release
+    @echo "=== build.ncl export ==="
+    nickel export augmented/examples/nickel/build.ncl
+    @echo ""
+    @echo "=== infra.ncl export ==="
+    nickel export augmented/examples/nickel/infra.ncl
 
-# Smoke test
+# Smoke test — typecheck the prelude only
 test-smoke:
     @echo "Smoke test..."
-    # TODO: Add basic sanity checks
+    nickel typecheck augmented/lib/prelude.ncl
+    @echo "Smoke test passed"
 
 # Run all quality checks
 quality: fmt-check lint test
@@ -108,48 +125,72 @@ fix: fmt
 # LINT & FORMAT
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Format all source files [reversible: git checkout]
+# Format all Nickel files (nickel format)
 fmt:
-    @echo "Formatting source files..."
-    # TODO: Replace with your formatter
+    @echo "Formatting .ncl files..."
+    find . -name '*.ncl' -not -path './.git/*' -not -name '*.k9.ncl' -exec nickel format {} \;
+    @echo "Formatting complete"
 
 # Check formatting without changes
 fmt-check:
-    @echo "Checking formatting..."
-    # TODO: Replace with your format check
+    #!/usr/bin/env bash
+    echo "Checking .ncl formatting..."
+    FAIL=0
+    while IFS= read -r f; do
+        if ! diff -q "$f" <(nickel format < "$f") > /dev/null 2>&1; then
+            echo "UNFORMATTED: $f"
+            FAIL=1
+        fi
+    done < <(find . -name '*.ncl' -not -path './.git/*' -not -name '*.k9.ncl')
+    if [ "$FAIL" -eq 1 ]; then
+        echo "Run 'just fmt' to fix"
+        exit 1
+    fi
+    echo "Formatting OK (K9 files excluded — K9! header is not standard Nickel)"
 
-# Run linter
+# Lint — typecheck all .ncl files in the repo
 lint:
-    @echo "Linting source files..."
-    # TODO: Replace with your linter
+    #!/usr/bin/env bash
+    echo "Linting .ncl files..."
+    FAIL=0
+    while IFS= read -r f; do
+        if ! nickel typecheck "$f" 2>&1; then
+            echo "FAIL: $f"
+            FAIL=1
+        fi
+    done < <(find . -name '*.ncl' -not -path './.git/*' -not -name '*.k9.ncl')
+    if [ "$FAIL" -eq 1 ]; then exit 1; fi
+    echo "Lint OK"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # RUN & EXECUTE
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Run the application
-run *args: build
-    # TODO: Replace with your run command
-    echo "Run not configured yet"
+# Export a Nickel config to JSON (usage: just export augmented/examples/nickel/build.ncl)
+run *args:
+    nickel export {{args}}
 
-# Run with verbose output
-run-verbose *args: build
-    # TODO: Replace with verbose run command
-    echo "Run not configured yet"
+# Export with pretty-printing via jq
+run-verbose *args:
+    nickel export {{args}} | jq .
 
-# Install to user path
-install: build-release
-    @echo "Installing {{project}}..."
-    # TODO: Replace with your install command
+# Install library to a target project (usage: just install /path/to/project)
+install target=".":
+    @echo "Installing {{project}} library to {{target}}/lib/nickel-augmented/"
+    @mkdir -p "{{target}}/lib/nickel-augmented"
+    cp augmented/lib/*.ncl "{{target}}/lib/nickel-augmented/"
+    @echo "Installed — import with: let aug = import \"./lib/nickel-augmented/prelude.ncl\" in"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # DEPENDENCIES
 # ═══════════════════════════════════════════════════════════════════════════════
 
-# Install/check all dependencies
+# Check that nickel CLI is available
 deps:
     @echo "Checking dependencies..."
-    # TODO: Replace with your dependency check
+    @command -v nickel >/dev/null || { echo "MISSING: nickel (install from https://nickel-lang.org)"; exit 1; }
+    @echo "nickel: $(nickel --version)"
+    @command -v jq >/dev/null && echo "jq: $(jq --version)" || echo "jq: not found (optional, for pretty-printing)"
     @echo "All dependencies satisfied"
 
 # Audit dependencies for vulnerabilities

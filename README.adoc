@@ -1,224 +1,62 @@
-= Nickel Augmentation
-:toc: macro
-:toclevels: 3
+// SPDX-License-Identifier: PMPL-1.0-or-later
+= nickel-augmentation
+image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
+
+:author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+:toc: left
 :icons: font
 
-toc::[]
+Nickel configuration language tools and extensions for https://github.com/hyperpolymath/rhodium-standard-repositories[RSR]-compliant projects. Provides typed, contract-validated configuration that enforces language policy, security policy, and infrastructure standards at build time.
 
-== Overview
+== Components
 
-Nickel Augmentation is a practical toolkit for applying https://nickel-lang.org/[Nickel] to real configuration-heavy systems.
+[cols="1,2,1"]
+|===
+|Component |Purpose |Status
 
-This repository focuses on the applied layer around Nickel rather than on redefining Nickel itself. The goal is to make Nickel more useful in day-to-day engineering work through reusable patterns, contract-oriented configuration, generated artifacts, reporting tools, and ecosystem-specific workflows.
+|link:augmented/[`augmented/`]
+|Reusable Nickel contract library (`lib/`) and examples for RSR projects
+|Active
 
-It is especially aimed at situations where plain JSON, YAML, or TOML become too loose, repetitive, or hard to validate, but where a full custom programming language or bespoke platform would be unnecessary.
+|link:config-reporter/[`config-reporter/`]
+|CLI tool that audits `.ncl` files for RSR compliance (SPDX, security, K9)
+|Active
 
-== Why this exists
+|link:contractiles/[`contractiles/`]
+|K9 contractile templates (Kennel/Yard/Hunt) and must/trust/dust/lust files
+|Stable
+|===
 
-Nickel already provides strong building blocks for configuration engineering:
+== Quick Start
 
-* modular configuration
-* contracts and validation
-* record merging and overrides
-* reusable abstractions
-* export to common formats
-* documentation-friendly metadata
+[source,bash]
+----
+# Check dependencies
+just deps
 
-This repository exists to build on those strengths in a practical way.
+# Typecheck all library modules
+just build
 
-The emphasis here is on:
+# Run full test suite (typecheck + export validation)
+just test
 
-* reusable Nickel patterns and libraries
-* validated configuration generation
-* reporting and inspection of generated configuration
-* contract-oriented operational scaffolding
-* examples and templates for real repositories and systems
+# Audit .ncl files for RSR compliance
+./config-reporter/bin/config-reporter augmented/
 
-Rather than treating configuration as a bag of untyped text files, Nickel Augmentation treats it as something that can be structured, checked, composed, explained, and emitted into downstream formats safely.
+# Export a Nickel config to JSON
+just run augmented/examples/nickel/build.ncl
+----
 
-== Project position
+== The Augmentation Boundary
 
-Nickel Augmentation is:
+Nickel **augments** existing config — it does not replace governance or runtime systems:
 
-* a practical toolkit built on Nickel
-* a place for reusable patterns, contracts, and generators
-* a home for supporting tools around Nickel-based workflows
-* a bridge between expressive configuration and operational reality
+- **Nickel generates, Scheme governs** — `STATE.scm` remains the source of truth
+- **Contracts, not code** — if you're writing loops, use ReScript/Rust instead
+- **Build-time validation** — catches config errors before deployment
 
-Nickel Augmentation is not currently:
-
-* a fork of the Nickel language
-* a replacement for Nickel's core compiler, evaluator, or language server
-* a promise of a full new type system
-* a generic “everything platform” for policy, secrets, verification, and infrastructure
-* a claim that every speculative idea in the roadmap is implemented
-
-Advanced ideas may appear here as experiments, notes, or prototypes, but the core identity of the repository is practical and applied.
-
-== What this repository contains
-
-The repository currently contains several related workstreams.
-
-=== `augmented/`
-
-Reusable Nickel-oriented material focused on applied augmentation.
-
-This area is the most direct expression of the repository’s purpose: practical building blocks, templates, patterns, and artifact-oriented workflows that help people use Nickel in real systems.
-
-Typical concerns here include:
-
-* validated composition
-* reusable configuration fragments
-* generated output
-* policy-aware defaults
-* structured documentation
-
-=== `config-reporter/`
-
-Tooling and documentation for inspecting, summarising, or reporting on configuration and generated artifacts.
-
-This workstream is useful where teams need:
-
-* human-readable summaries of configuration state
-* audit views over generated output
-* consistency checks
-* explainability for what a Nickel configuration resolves to
-
-=== `contractiles/`
-
-Contract-oriented scaffolding, patterns, and operational framing.
-
-This area explores how contract thinking can shape not just isolated values but repository structure, generation pipelines, and higher-level configuration workflows.
-
-== Intended use cases
-
-Nickel Augmentation is most useful when you want one or more of the following:
-
-* stronger guarantees than ad hoc YAML or JSON
-* configurable systems that still remain readable
-* reusable contract-oriented modules
-* generated machine artifacts with human-legible source definitions
-* reportable and inspectable configuration workflows
-* a disciplined way to structure repository or deployment metadata
-
-Potential domains include:
-
-* CI/CD configuration
-* infrastructure configuration generation
-* repository automation
-* policy-aware project templates
-* machine-readable project metadata
-* multi-environment service definitions
-
-== Design principles
-
-=== Practical first
-
-This repository prefers useful, demonstrable improvements over broad promises.
-
-=== Built on current Nickel strengths
-
-The primary strategy is to use what Nickel already does well and wrap it in patterns, tooling, and conventions that improve real workflows.
-
-=== Contract-oriented thinking
-
-Contracts are treated as a first-class design tool, not merely as an optional validation afterthought.
-
-=== Generated artifacts should remain legible
-
-Generated output matters, but source definitions must remain understandable to humans.
-
-=== Honest scope
-
-Research ideas are welcome, but they should be clearly marked as exploratory rather than presented as if they already exist.
-
-== Near-term goals
-
-The most important near-term goals are:
-
-. make the repository identity coherent
-. provide a small but solid set of reusable Nickel patterns
-. improve examples and end-to-end demonstrations
-. mature reporting and inspection workflows
-. document when Nickel is the right tool, and when it is not
-
-== Current status
-
-This repository is under active development.
-
-The project direction is clear, but the documentation and internal structure are still being tightened so that the repository tells one coherent story. Some existing material is exploratory, some is operational, and some is still being normalised.
-
-Users should treat the repository as promising but evolving.
-
-== Suggested repository reading order
-
-For a new visitor, the best reading order is:
-
-. this `README.adoc`
-. `ROADMAP.adoc`
-. `TOPOLOGY.md`
-. the READMEs inside `augmented/`, `config-reporter/`, and `contractiles/`
-
-That order should explain:
-
-* what the project is
-* what is implemented vs exploratory
-* where work is happening
-* how the pieces relate
-
-== Contributing
-
-Contributions are welcome, especially in the following forms:
-
-* tightening documentation
-* improving examples
-* expanding practical contract patterns
-* improving generated artifact workflows
-* refining reporting and audit tooling
-* reducing ambiguity between exploratory and stable features
-
-Please keep contributions grounded, legible, and honest about maturity.
-
-Before making large conceptual changes, prefer opening an issue or drafting a design note so that the repository continues to move toward a tighter and more coherent identity.
-
-See `CONTRIBUTING.md` for contribution guidance.
-
-== Relationship to Nickel
-
-Nickel Augmentation depends on the existence and strengths of Nickel.
-
-This project is downstream and complementary. It aims to help users apply Nickel more effectively in practice. Where deeper language changes become relevant, those should be framed clearly as upstream ideas, experiments, or proposal material rather than silently treated as part of Nickel itself.
-
-== Documentation goals
-
-A good state for this repository is one where a new visitor can answer the following quickly:
-
-* What problem does this repo solve?
-* What parts are real today?
-* What parts are exploratory?
-* Which subdirectory should I look at first?
-* Why should I use this instead of plain YAML, JSON, or TOML?
-* Why is Nickel the right substrate here?
-
-This README and the accompanying roadmap are intended to move the repository toward that standard.
+See link:augmented/README.adoc[augmented/README.adoc] for the full boundary specification.
 
 == License
 
-This repository should follow the license and notice files present at the repository root.
-
-Documentation and metadata should remain consistent with those files, and should not describe the project using stale or contradictory license wording.
-
-See:
-
-* `LICENSE`
-* `NOTICE`
-
-== Status note for maintainers and coding agents
-
-When editing this repository, prefer the following interpretation:
-
-* this is a practical Nickel augmentation toolkit
-* the subprojects should reinforce that identity
-* speculative language-research ideas belong in clearly marked experimental sections
-* documentation should not overclaim implementation status
-* repository structure documentation must match the actual tree
+PMPL-1.0-or-later

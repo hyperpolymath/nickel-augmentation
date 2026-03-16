@@ -1,9 +1,18 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
 # META.a2ml — Project meta-information
-# Converted from META.scm on 2026-03-15
 
 [metadata]
 project = "nickel-augmentation"
 author = "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
 license = "PMPL-1.0-or-later"
 standard = "RSR 2026"
+
+[architecture-decisions]
+adr-001 = "Nickel contracts are build-time policy — runtime enforcement uses proven Idris2 via FFI"
+adr-002 = "config-reporter is a bash script, not Rust, because it orchestrates nickel CLI calls"
+adr-003 = "K9 files excluded from nickel format because K9! magic header is not standard Nickel syntax"
+adr-004 = "Library uses | default for base configs to enable Nickel merge-override semantics"
+
+[design-rationale]
+boundary = "Nickel generates, Scheme governs. Contracts, not code."
+security = "HTTPS-only, SHA-256+, SHA-pinned actions, no hardcoded secrets"

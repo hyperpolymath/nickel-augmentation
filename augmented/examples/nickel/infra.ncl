@@ -3,7 +3,6 @@
 
 # Infrastructure configuration example
 # Demonstrates: type-safe secrets references, environment configs
-
 let contracts = import "./contracts.ncl" in
 
 # Secret reference - never contains actual secrets, only references
@@ -11,14 +10,17 @@ let contracts = import "./contracts.ncl" in
 let SecretRef = {
   type | [| 'env, 'vault, 'sops |],
   key | contracts.NonEmptyString,
-} in
+}
+in
 
 # Environment-specific configuration using Nickel merge
+# Base config uses `default` so per-environment overrides take precedence
 let base_config = {
-  log_level = "info",
-  metrics_enabled = true,
-  tracing_enabled = true,
-} in
+  log_level | default = "info",
+  metrics_enabled | default = true,
+  tracing_enabled | default = true,
+}
+in
 
 {
   # Services configuration with contracts
@@ -49,43 +51,49 @@ let base_config = {
 
   # Environment configurations using merge semantics
   environments = {
-    development = base_config & {
-      log_level = "debug",
-      database = {
-        host = "localhost",
-        port = 5432,
-        name = "myapp_dev",
-        # Secret reference - actual password from environment
-        password | SecretRef = { type = 'env, key = "DEV_DB_PASSWORD" },
+    development =
+      base_config
+      & {
+        log_level = "debug",
+        database = {
+          host = "localhost",
+          port = 5432,
+          name = "myapp_dev",
+          # Secret reference - actual password from environment
+          password | SecretRef = { type = 'env, key = "DEV_DB_PASSWORD" },
+        },
       },
-    },
 
-    staging = base_config & {
-      database = {
-        host = "staging-db.internal",
-        port = 5432,
-        name = "myapp_staging",
-        password | SecretRef = { type = 'vault, key = "secret/staging/db-password" },
+    staging =
+      base_config
+      & {
+        database = {
+          host = "staging-db.internal",
+          port = 5432,
+          name = "myapp_staging",
+          password | SecretRef = { type = 'vault, key = "secret/staging/db-password" },
+        },
       },
-    },
 
-    production = base_config & {
-      log_level = "warn",
-      database = {
-        host = "prod-db.internal",
-        port = 5432,
-        name = "myapp_prod",
-        # Production uses SOPS-encrypted secrets
-        password | SecretRef = { type = 'sops, key = "db_password" },
-        ssl_mode = "verify-full",
-        pool_size = 20,
+    production =
+      base_config
+      & {
+        log_level = "warn",
+        database = {
+          host = "prod-db.internal",
+          port = 5432,
+          name = "myapp_prod",
+          # Production uses SOPS-encrypted secrets
+          password | SecretRef = { type = 'sops, key = "db_password" },
+          ssl_mode = "verify-full",
+          pool_size = 20,
+        },
+        # Production-specific settings
+        rate_limiting = {
+          enabled = true,
+          requests_per_minute = 1000,
+        },
       },
-      # Production-specific settings
-      rate_limiting = {
-        enabled = true,
-        requests_per_minute = 1000,
-      },
-    },
   },
 
   # Container configuration (nerdctl + Wolfi per RSR)
@@ -125,7 +133,8 @@ let base_config = {
 
   # Generate environment-specific configs
   # This shows Nickel generating output for different environments
-  export = fun env_name =>
+  # Marked not_exported because functions can't be serialized
+  export | not_exported = fun env_name =>
     let env = environments."%{env_name}" in
     {
       services = services,

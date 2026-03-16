@@ -1,10 +1,23 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
-# ECOSYSTEM.a2ml — Ecosystem position
-# Converted from ECOSYSTEM.scm on 2026-03-15
+# ECOSYSTEM.a2ml — Ecosystem position for nickel-augmentation
 
 [metadata]
 project = "nickel-augmentation"
 ecosystem = "hyperpolymath"
+version = "0.2.0"
 
 [position]
-type = "component"
+type = "tooling"
+purpose = "Typed configuration contracts and audit tooling for RSR-compliant projects"
+
+[related-projects]
+rsr-template-repo = "sibling — provides the repo template that nickel-augmented validates"
+hypatia = "consumer — Hypatia uses config-reporter rules for Nickel-specific scanning"
+proven = "upstream — SafeUrl, SafeVersion, SafeString provide formal backends for runtime enforcement"
+k9-svc = "sibling — K9 contractile specification that nickel-augmentation implements templates for"
+contractiles = "sibling — must/trust/dust/lust CLI that K9 files integrate with"
+developer-ecosystem = "parent — Nickel tools sit within the broader dev tooling ecosystem"
+
+[integration-notes]
+proven-bridge = "Nickel contracts define policy; proven Idris2 modules enforce at runtime via FFI. Bridge not yet built."
+hypatia-rules = "8 Nickel-specific patterns added to Hypatia code_safety.ex (2026-03-16)"

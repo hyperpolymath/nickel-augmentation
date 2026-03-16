@@ -1,0 +1,248 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# config-reporter — Audit .ncl files for RSR compliance
+#
+# Scans a directory for Nickel configuration files and checks them against
+# RSR rules: SPDX headers, security policy, language policy, K9 contracts.
+#
+# Usage:
+#   config-reporter [directory]         Scan directory (default: current dir)
+#   config-reporter --json [directory]  Output JSON report
+#   config-reporter --help              Show this help
+#
+# Exit codes:
+#   0  All checks passed
+#   1  Errors found
+#   2  Usage error
+
+set -euo pipefail
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+VERSION="0.1.0"
+OUTPUT_JSON=false
+TARGET_DIR="."
+
+# Colours (disabled if not a terminal)
+if [ -t 1 ]; then
+    RED='\033[0;31m'
+    YELLOW='\033[0;33m'
+    GREEN='\033[0;32m'
+    CYAN='\033[0;36m'
+    BOLD='\033[1m'
+    RESET='\033[0m'
+else
+    RED='' YELLOW='' GREEN='' CYAN='' BOLD='' RESET=''
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ARGUMENT PARSING
+# ═══════════════════════════════════════════════════════════════════════════════
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --json)   OUTPUT_JSON=true; shift ;;
+        --help|-h)
+            echo "config-reporter v${VERSION} — Audit .ncl files for RSR compliance"
+            echo ""
+            echo "Usage: config-reporter [--json] [directory]"
+            echo ""
+            echo "Options:"
+            echo "  --json       Output report as JSON"
+            echo "  --help, -h   Show this help"
+            echo ""
+            echo "Rules checked:"
+            echo "  SPDX-001   SPDX header present"
+            echo "  SPDX-002   SPDX license is approved"
+            echo "  SEC-001    No HTTP URLs (HTTPS only)"
+            echo "  SEC-002    No weak hashes (MD5/SHA-1)"
+            echo "  LANG-001   No banned languages in build targets"
+            echo "  K9-001     K9 magic header on .k9.ncl files"
+            echo "  K9-002     K9 pedigree section present"
+            echo "  META-001   Copyright header present"
+            echo "  TYPE-001   Nickel typecheck passes"
+            exit 0
+            ;;
+        -*)
+            echo "Unknown option: $1" >&2
+            exit 2
+            ;;
+        *)
+            TARGET_DIR="$1"; shift ;;
+    esac
+done
+
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "Error: directory not found: $TARGET_DIR" >&2
+    exit 2
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SCANNING
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Counters
+TOTAL=0
+PASSED=0
+FAILED=0
+ERRORS=0
+WARNINGS=0
+INFOS=0
+
+# JSON findings accumulator
+FINDINGS_JSON="[]"
+
+# Record a finding
+# Usage: finding <file> <severity> <rule> <message>
+finding() {
+    local file="$1" severity="$2" rule="$3" message="$4"
+    case "$severity" in
+        error)   ERRORS=$((ERRORS + 1));   printf "${RED}  ERROR${RESET}   [%s] %s: %s\n" "$rule" "$file" "$message" ;;
+        warning) WARNINGS=$((WARNINGS + 1)); printf "${YELLOW}  WARN${RESET}    [%s] %s: %s\n" "$rule" "$file" "$message" ;;
+        info)    INFOS=$((INFOS + 1));     printf "${CYAN}  INFO${RESET}    [%s] %s: %s\n" "$rule" "$file" "$message" ;;
+    esac
+    if $OUTPUT_JSON; then
+        FINDINGS_JSON=$(echo "$FINDINGS_JSON" | jq --arg f "$file" --arg s "$severity" --arg r "$rule" --arg m "$message" \
+            '. + [{"file": $f, "severity": $s, "rule": $r, "message": $m}]')
+    fi
+}
+
+echo -e "${BOLD}config-reporter v${VERSION}${RESET} — scanning ${TARGET_DIR:-.}"
+echo ""
+
+# Find all .ncl files
+mapfile -t NCL_FILES < <(find "$TARGET_DIR" -name '*.ncl' -not -path '*/.git/*' | sort)
+TOTAL=${#NCL_FILES[@]}
+
+if [ "$TOTAL" -eq 0 ]; then
+    echo "No .ncl files found in $TARGET_DIR"
+    exit 0
+fi
+
+echo -e "Found ${BOLD}${TOTAL}${RESET} .ncl files"
+echo ""
+
+for ncl_file in "${NCL_FILES[@]}"; do
+    file_ok=true
+    is_k9=false
+    [[ "$ncl_file" == *.k9.ncl ]] && is_k9=true
+
+    # ── SPDX-001: SPDX header present ────────────────────────────────
+    if ! head -5 "$ncl_file" | grep -q "SPDX-License-Identifier:"; then
+        finding "$ncl_file" "error" "SPDX-001" "Missing SPDX-License-Identifier in first 5 lines"
+        file_ok=false
+    fi
+
+    # ── SPDX-002: Approved license ───────────────────────────────────
+    if head -5 "$ncl_file" | grep -q "SPDX-License-Identifier:"; then
+        if ! head -5 "$ncl_file" | grep -qE "SPDX-License-Identifier:.*(PMPL-1\.0-or-later|MPL-2\.0|MIT|Apache-2\.0|BSD-[23]-Clause)"; then
+            finding "$ncl_file" "warning" "SPDX-002" "SPDX license not in approved set"
+            file_ok=false
+        fi
+    fi
+
+    # ── SEC-001: No HTTP URLs ─────────────────────────────────────────
+    # Strip comment lines (# at any indentation) before checking
+    if grep -v '^\s*#' "$ncl_file" | grep -E 'http://[^"]' > /dev/null 2>&1; then
+        finding "$ncl_file" "error" "SEC-001" "Contains http:// URL (must use https://)"
+        file_ok=false
+    fi
+
+    # ── SEC-002: No weak hashes ───────────────────────────────────────
+    if grep -v '^\s*#' "$ncl_file" | grep -Ei '(md5:|sha1:)[a-fA-F0-9]+' > /dev/null 2>&1; then
+        finding "$ncl_file" "warning" "SEC-002" "Contains weak hash (MD5 or SHA-1)"
+        file_ok=false
+    fi
+
+    # ── LANG-001: No banned languages ─────────────────────────────────
+    if grep -nE 'language\s*=\s*"(typescript|go|python|java|kotlin|swift|dart)"' "$ncl_file" > /dev/null 2>&1; then
+        finding "$ncl_file" "error" "LANG-001" "References banned language in build target"
+        file_ok=false
+    fi
+
+    # ── K9-001: K9 magic header ───────────────────────────────────────
+    if $is_k9; then
+        if ! head -1 "$ncl_file" | grep -q '^K9!'; then
+            finding "$ncl_file" "error" "K9-001" "K9 file missing 'K9!' magic header on line 1"
+            file_ok=false
+        fi
+    fi
+
+    # ── K9-002: K9 pedigree section ───────────────────────────────────
+    if $is_k9; then
+        if ! grep -q 'pedigree\s*=' "$ncl_file"; then
+            finding "$ncl_file" "error" "K9-002" "K9 file missing pedigree section"
+            file_ok=false
+        fi
+    fi
+
+    # ── META-001: Copyright header ────────────────────────────────────
+    if ! head -5 "$ncl_file" | grep -qE '(Copyright.*Jonathan D\.A\. Jewell|SPDX-FileCopyrightText:)'; then
+        finding "$ncl_file" "info" "META-001" "No copyright header found"
+    fi
+
+    # ── TYPE-001: Nickel typecheck ────────────────────────────────────
+    if ! $is_k9; then
+        if ! nickel typecheck "$ncl_file" > /dev/null 2>&1; then
+            finding "$ncl_file" "error" "TYPE-001" "Nickel typecheck failed"
+            file_ok=false
+        fi
+    fi
+
+    if $file_ok; then
+        PASSED=$((PASSED + 1))
+    else
+        FAILED=$((FAILED + 1))
+    fi
+done
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SUMMARY
+# ═══════════════════════════════════════════════════════════════════════════════
+
+echo ""
+echo -e "${BOLD}Summary${RESET}"
+echo "  Files scanned:  $TOTAL"
+echo -e "  ${GREEN}Passed:${RESET}         $PASSED"
+[ "$FAILED" -gt 0 ] && echo -e "  ${RED}Failed:${RESET}         $FAILED"
+[ "$ERRORS" -gt 0 ] && echo -e "  ${RED}Errors:${RESET}         $ERRORS"
+[ "$WARNINGS" -gt 0 ] && echo -e "  ${YELLOW}Warnings:${RESET}       $WARNINGS"
+[ "$INFOS" -gt 0 ] && echo -e "  ${CYAN}Info:${RESET}           $INFOS"
+
+# JSON output
+if $OUTPUT_JSON; then
+    TIMESTAMP=$(date -Iseconds)
+    jq -n \
+        --arg v "$VERSION" \
+        --arg ts "$TIMESTAMP" \
+        --arg dir "$TARGET_DIR" \
+        --argjson findings "$FINDINGS_JSON" \
+        --argjson total "$TOTAL" \
+        --argjson passed "$PASSED" \
+        --argjson failed "$FAILED" \
+        --argjson errors "$ERRORS" \
+        --argjson warnings "$WARNINGS" \
+        --argjson infos "$INFOS" \
+        '{
+            version: $v,
+            timestamp: $ts,
+            target_directory: $dir,
+            findings: $findings,
+            summary: {
+                total_files: $total,
+                files_passed: $passed,
+                files_failed: $failed,
+                errors: $errors,
+                warnings: $warnings,
+                info: $infos
+            }
+        }'
+fi
+
+# Exit code: 1 if errors, 0 otherwise
+[ "$ERRORS" -gt 0 ] && exit 1
+exit 0

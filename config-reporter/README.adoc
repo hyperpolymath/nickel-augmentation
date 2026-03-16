@@ -1,10 +1,62 @@
+// SPDX-License-Identifier: PMPL-1.0-or-later
 = Nickel Config Reporter
 image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
 
-
 :toc: auto
+:icons: font
 
-Configuration reporting and validation using Nickel language.
+Audits `.ncl` files for https://github.com/hyperpolymath/rhodium-standard-repositories[RSR] compliance. Part of the https://github.com/hyperpolymath/nickel-augmentation[nickel-augmentation] monorepo.
+
+== What It Checks
+
+[cols="1,1,2"]
+|===
+|Rule |Severity |Description
+
+|SPDX-001 |Error |SPDX-License-Identifier in first 5 lines
+|SPDX-002 |Warning |License is in the approved set (PMPL, MPL-2.0, MIT, etc.)
+|SEC-001 |Error |No `http://` URLs — HTTPS only
+|SEC-002 |Warning |No weak hashes (MD5, SHA-1)
+|LANG-001 |Error |No banned languages in build targets
+|K9-001 |Error |K9 files start with `K9!` magic header
+|K9-002 |Error |K9 files have a `pedigree` section
+|META-001 |Info |Copyright header present
+|TYPE-001 |Error |Nickel typecheck passes
+|===
+
+== Usage
+
+[source,bash]
+----
+# Scan current directory
+./bin/config-reporter
+
+# Scan a specific directory
+./bin/config-reporter /path/to/project
+
+# JSON report (for CI integration)
+./bin/config-reporter --json /path/to/project > report.json
+
+# Help
+./bin/config-reporter --help
+----
+
+== Exit Codes
+
+[cols="1,3"]
+|===
+|Code |Meaning
+
+|0 |All checks passed (warnings and info allowed)
+|1 |Errors found
+|2 |Usage error (bad arguments, directory not found)
+|===
+
+== Dependencies
+
+- `nickel` (for TYPE-001 typecheck rule)
+- `jq` (for `--json` output)
+- `bash` 4+ (for `mapfile`)
 
 == License
 

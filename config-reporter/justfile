@@ -1,27 +1,36 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
-# justfile - Just recipes for this project
-# See: https://github.com/hyperpolymath/mustfile
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# justfile — config-reporter recipes
 
 # Default recipe
 default:
     @just --list
 
-# Build the project
+# Typecheck the report schema
 build:
-    @echo "Build not configured yet"
+    nickel typecheck src/report.ncl
+    nickel typecheck src/rules.ncl
+    @echo "Schema files typecheck OK"
 
-# Run tests
+# Run the reporter on the parent monorepo
 test:
-    @echo "Tests not configured yet"
+    ./bin/config-reporter ../augmented/
+    @echo "Reporter test passed"
 
-# Format code
-fmt:
-    @echo "Formatting not configured yet"
+# Run reporter in JSON mode and validate output with jq
+test-json:
+    ./bin/config-reporter --json ../augmented/ 2>/dev/null | jq . > /dev/null
+    @echo "JSON output valid"
 
-# Lint code
+# Lint — check the reporter script with shellcheck
 lint:
-    @echo "Linting not configured yet"
+    @command -v shellcheck >/dev/null && shellcheck bin/config-reporter || echo "shellcheck not found (optional)"
+
+# Format (no-op for bash scripts)
+fmt:
+    @echo "No formatter configured for bash scripts"
 
 # Clean build artifacts
 clean:
-    @echo "Clean not configured yet"
+    @echo "Nothing to clean"
