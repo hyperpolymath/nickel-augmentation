@@ -11,7 +11,7 @@
 If you discover a security vulnerability in this project, please report it responsibly:
 
 1. **Do not** create a public GitHub issue for security vulnerabilities
-2. Email the maintainer directly at: jonathan.jewell@open.ac.uk
+2. Email the maintainer directly at: j.d.a.jewell@open.ac.uk
 3. Include as much detail as possible:
    - Description of the vulnerability
    - Steps to reproduce
