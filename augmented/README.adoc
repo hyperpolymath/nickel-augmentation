@@ -46,7 +46,7 @@ cd my-project
 
 # Customize placeholders
 sed -i 's/{{PROJECT}}/my-project/g' **/*
-sed -i 's/{{OWNER}}/your-username/g' **/*
+sed -i 's/hyperpolymath/your-username/g' **/*
 
 # Run validation
 just validate-rsr
