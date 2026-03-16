@@ -51,7 +51,7 @@ just run augmented/examples/nickel/build.ncl
 
 Nickel **augments** existing config — it does not replace governance or runtime systems:
 
-- **Nickel generates, Scheme governs** — `STATE.scm` remains the source of truth
+- **Nickel generates, Scheme governs** — `.machine_readable/6a2/STATE.a2ml` remains the source of truth
 - **Contracts, not code** — if you're writing loops, use ReScript/Rust instead
 - **Build-time validation** — catches config errors before deployment
 
