@@ -1,14 +1,99 @@
-= nickel-augmentation
-// SPDX-License-Identifier: PMPL-1.0-or-later
-:author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Nickel Augmentation: Extending Nickel for Real-World Configuration
+:toc: macro
+:toclevels: 3
+:icons: font
+:source-highlighter: pygments
 
-Nickel configuration language tools and extensions.
+toc::[]
 
-== Components
+== Overview
 
-* `augmented/` - Nickel augmentation tools
-* `config-reporter/` - Configuration reporting and analysis
+Nickel is a powerful, type-safe configuration language, but real-world use cases often demand more: **secrets management, formal guarantees, temporal logic, and seamless integration with modern infrastructure**. This project, _nickel-augmentation_, explores extensions and tooling to make Nickel even more robust, expressive, and practical for production environments.
+
+Whether you're managing cloud infrastructure, enforcing security policies, or rolling out dynamic configurations, these augmentations aim to bring **formal methods, usability, and scalability** to Nickel—without sacrificing its simplicity.
+
+== Why This Project?
+
+Nickel is already a great choice for typed configuration, but we want to push further:
+
+- **Type System Extensions:** Enforce complex invariants (e.g., uniqueness, validity) at compile time.
+- **Formal Verification:** Use SMT solvers to guarantee properties like "no circular dependencies" or "all required fields are set."
+- **Secrets Management:** First-class support for encrypted values and access control.
+- **Temporal Configurations:** Handle time-varying settings (e.g., feature flags, canary deployments).
+- **Interoperability:** Tight integration with Rust, WASM, and infrastructure-as-code tools.
+- **Usability:** Human-friendly diagnostics and tooling for large-scale configurations.
+
+This project is for anyone who wants to **reduce configuration errors, enforce policies, and scale Nickel to complex systems**.
+
+== Features
+
+=== Type System Extensions
+- **Refinement types** for domain-specific constraints (e.g., "this port must be unique").
+- **Dependent types** for configurations that depend on runtime values.
+
+=== Formal Verification
+- Lightweight static checking using SMT solvers (e.g., Z3).
+- Compile-time guarantees for critical properties.
+
+=== Secrets and Sensitivity
+- A `secret` type for encrypted values, with compile-time safety checks.
+- Integration with HashiCorp Vault, AWS KMS, and other secrets managers.
+
+=== Temporal and Dynamic Configurations
+- Express configurations that change over time (e.g., "enable this feature from T1 to T2").
+- Safe dynamic reconfiguration for zero-downtime updates.
+
+=== Tooling and Integration
+- **Modular configurations:** Reusable, type-checked components.
+- **Diffing and merging:** Semantic-aware tools for collaboration.
+- **Rust/WASM interop:** Embed Nickel in Rust or compile to WASM.
+
+=== Usability
+- **Elm-like diagnostics:** Clear, actionable error messages.
+- **VS Code/LSP support:** Autocompletion, hover docs, and refactoring.
+
+== Getting Started
+
+### Prerequisites
+- Rust (latest stable)
+- Nickel (latest release)
+- Optional: Z3 or another SMT solver for formal verification
+
+### Installation
+[source,bash]
+----
+git clone https://github.com/hyperpolymath/nickel-augmentation.git
+cd nickel-augmentation
+cargo build --release
+----
+
+### Example: Type-Safe Secrets
+[source,nickel]
+----
+let config = {
+  db = {
+    url = "postgres://user:secret@localhost/db",
+    password = secret "s3cr3t",  # Encrypted at rest, never logged
+  }
+}
+----
+
+### Example: Temporal Configuration
+[source,nickel]
+----
+let feature_flags = {
+  new_ui = {
+    enabled = true,
+    rollout = {
+      start = "2026-03-16",
+      end = "2026-03-30",
+    },
+  }
+}
+----
+
+== Contributing
+We welcome contributions! See the link:ROADMAP.adoc[roadmap] for planned features and open issues. For major changes, please open an issue first to discuss the design.
 
 == License
-
-PMPL-1.0-or-later
+This project is licensed under the MIT License. See link:LICENSE[LICENSE] for details.
