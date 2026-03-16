@@ -1,10 +1,67 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
-= nickel-augmentation Roadmap
+= Nickel Augmentation Roadmap
+:toc: macro
+:toclevels: 2
+:icons: font
 
-Nickel configuration language augmentation tools. Completion: 35%.
+toc::[]
 
-== Goals
-* [ ] Complete core functionality
-* [ ] Add test coverage
-* [ ] Write documentation
-* [ ] Stable 1.0 release
+== Vision
+Our goal is to make Nickel the **best language for safe, scalable, and expressive configuration**. This roadmap outlines our priorities and milestones.
+
+== Short-Term Goals (Next 3-6 Months)
+
+=== Phase 1: Core Extensions
+- **Type System:**
+  - Implement refinement types for common constraints (e.g., port numbers, unique IDs).
+  - Add dependent types for runtime-dependent configurations.
+- **Formal Verification:**
+  - Integrate Z3 for static checking of invariants.
+  - Add a `--verify` flag for compile-time guarantees.
+- **Secrets Management:**
+  - Define a `secret` type and basic encryption/decryption.
+  - Integrate with HashiCorp Vault.
+
+=== Phase 2: Tooling and Usability
+- **Diagnostics:** Improve error messages with context-aware suggestions.
+- **VS Code Extension:** Basic LSP support for autocompletion and hover docs.
+- **Modularity:** Design a system for reusable configuration components.
+
+=== Phase 3: Temporal Configurations
+- Syntax for time-varying configurations (e.g., feature flags).
+- Runtime support for dynamic updates.
+
+== Medium-Term Goals (6-12 Months)
+
+=== Phase 4: Interoperability
+- **Rust Embedding:** Allow Rust programs to manipulate Nickel configurations safely.
+- **WASM Support:** Compile Nickel to WASM for browser/edge use cases.
+- **Infrastructure as Code:**
+  - Prototype a Nickel-to-Terraform compiler.
+  - Kubernetes and Nginx configuration libraries.
+
+=== Phase 5: Performance
+- Incremental evaluation for large configurations.
+- Parallel evaluation for scalability.
+
+== Long-Term Goals (12+ Months)
+
+=== Phase 6: Policy as Code
+- Use Nickel to define and enforce organizational policies (e.g., "all services must use TLS 1.3").
+- Integration with Open Policy Agent (OPA).
+
+=== Phase 7: Ecosystem Growth
+- Standard libraries for common tools (Kubernetes, PostgreSQL, etc.).
+- Community-driven plugins and extensions.
+
+== How to Get Involved
+- **Report bugs or request features:** Open an issue on GitHub.
+- **Contribute code:** Check out the link:CONTRIBUTING.adoc[contributing guide].
+- **Discuss ideas:** Join the conversation in the link:https://github.com/hyperpolymath/nickel-augmentation/discussions[Discussions] tab.
+
+== Open Questions
+- Should we prioritize formal verification or secrets management first?
+- What are the most painful configuration problems in your workflow?
+- How can we make Nickel more accessible to non-experts?
+
+== License
+This project is licensed under the MIT License. See link:LICENSE[LICENSE] for details.
