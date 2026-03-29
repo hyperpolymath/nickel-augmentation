@@ -64,6 +64,12 @@ while [[ $# -gt 0 ]]; do
             echo "  K9-001     K9 magic header on .k9.ncl files"
             echo "  K9-002     K9 pedigree section present"
             echo "  META-001   Copyright header present"
+            echo "  CTR-001    Container base image is Chainguard"
+            echo "  CTR-002    Container runtime is Podman (not Docker)"
+            echo "  WF-001     Actions are SHA-pinned (not version tags)"
+            echo "  WF-002     Workflow declares permissions"
+            echo "  SEC-003    No hardcoded secrets"
+            echo "  DB-001     Database SSL mode is secure"
             echo "  TYPE-001   Nickel typecheck passes"
             exit 0
             ;;
@@ -183,6 +189,46 @@ for ncl_file in "${NCL_FILES[@]}"; do
     # ── META-001: Copyright header ────────────────────────────────────
     if ! head -5 "$ncl_file" | grep -qE '(Copyright.*Jonathan D\.A\. Jewell|SPDX-FileCopyrightText:)'; then
         finding "$ncl_file" "info" "META-001" "No copyright header found"
+    fi
+
+    # ── CTR-001: Container base image is Chainguard ─────────────────
+    if grep -q 'base_image\s*=' "$ncl_file" 2>/dev/null; then
+        if ! grep -qE 'base_image\s*=\s*"(cgr\.dev/|wolfi-base|chainguard)' "$ncl_file"; then
+            finding "$ncl_file" "error" "CTR-001" "Container base image is not Chainguard/Wolfi"
+            file_ok=false
+        fi
+    fi
+
+    # ── CTR-002: Container runtime is Podman ──────────────────────────
+    if grep -qE 'runtime\s*=\s*"docker"' "$ncl_file" 2>/dev/null; then
+        finding "$ncl_file" "error" "CTR-002" "Container runtime must be podman or nerdctl, not docker"
+        file_ok=false
+    fi
+
+    # ── WF-001: Actions are SHA-pinned ────────────────────────────────
+    if grep -qE 'uses\s*=\s*"[^@]+@v[0-9]' "$ncl_file" 2>/dev/null; then
+        finding "$ncl_file" "error" "WF-001" "GitHub Action uses version tag instead of SHA pin"
+        file_ok=false
+    fi
+
+    # ── WF-002: Workflow has permissions ───────────────────────────────
+    if [[ "$ncl_file" == *ci*.ncl ]] || [[ "$ncl_file" == *workflow*.ncl ]]; then
+        if ! grep -q 'permissions\s*=' "$ncl_file" 2>/dev/null; then
+            finding "$ncl_file" "warning" "WF-002" "CI/workflow config missing permissions declaration"
+            file_ok=false
+        fi
+    fi
+
+    # ── SEC-003: No hardcoded secrets ─────────────────────────────────
+    if grep -v '^\s*#' "$ncl_file" | grep -qE '(api_key|token|password|secret)\s*=\s*"[a-zA-Z0-9_-]{20,}"' 2>/dev/null; then
+        finding "$ncl_file" "error" "SEC-003" "Contains hardcoded secret (use SecretRef instead)"
+        file_ok=false
+    fi
+
+    # ── DB-001: Database SSL mode is secure ───────────────────────────
+    if grep -qE 'ssl_mode\s*=\s*"(disable|prefer|allow)"' "$ncl_file" 2>/dev/null; then
+        finding "$ncl_file" "warning" "DB-001" "Database SSL mode must be require/verify-ca/verify-full"
+        file_ok=false
     fi
 
     # ── TYPE-001: Nickel typecheck ────────────────────────────────────

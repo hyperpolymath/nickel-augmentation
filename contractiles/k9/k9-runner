@@ -1,0 +1,243 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: PMPL-1.0-or-later
+# Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
+#
+# k9-runner — Execute K9 contractile files at the appropriate security level.
+#
+# K9 security levels:
+#   Kennel (level 0): Data-only. No evaluation, no network, no side effects.
+#   Yard   (level 1): Nickel evaluation with contracts. No shell execution.
+#   Hunt   (level 2): Full system access. Requires signature. Runs Just recipes.
+#
+# Usage:
+#   k9-runner <file.k9.ncl>                   Auto-detect level and run
+#   k9-runner --level kennel <file.k9.ncl>    Force Kennel level (export only)
+#   k9-runner --level yard <file.k9.ncl>      Force Yard level (typecheck + export)
+#   k9-runner --level hunt <file.k9.ncl>      Force Hunt level (full execution)
+#   k9-runner --dry-run <file.k9.ncl>         Show what would happen, don't execute
+#   k9-runner --list <directory>               List K9 files with their levels
+
+set -euo pipefail
+
+VERSION="0.1.0"
+DRY_RUN=false
+FORCE_LEVEL=""
+MODE="run"
+
+# Colours
+if [ -t 1 ]; then
+    RED='\033[0;31m' YELLOW='\033[0;33m' GREEN='\033[0;32m'
+    CYAN='\033[0;36m' BOLD='\033[1m' RESET='\033[0m'
+else
+    RED='' YELLOW='' GREEN='' CYAN='' BOLD='' RESET=''
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ARGUMENT PARSING
+# ═══════════════════════════════════════════════════════════════════════════════
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --dry-run)   DRY_RUN=true; shift ;;
+        --level)     FORCE_LEVEL="$2"; shift 2 ;;
+        --list)      MODE="list"; shift ;;
+        --help|-h)
+            echo "k9-runner v${VERSION} — Execute K9 contractile files"
+            echo ""
+            echo "Usage: k9-runner [options] <file.k9.ncl|directory>"
+            echo ""
+            echo "Options:"
+            echo "  --level <kennel|yard|hunt>  Force security level"
+            echo "  --dry-run                   Show what would happen"
+            echo "  --list                      List K9 files with their levels"
+            echo "  --help, -h                  Show this help"
+            echo ""
+            echo "Security Levels:"
+            echo "  kennel  Data-only export (no evaluation)"
+            echo "  yard    Nickel evaluation with contracts"
+            echo "  hunt    Full system access (requires signature)"
+            exit 0
+            ;;
+        -*)  echo "Unknown option: $1" >&2; exit 2 ;;
+        *)   TARGET="$1"; shift ;;
+    esac
+done
+
+TARGET="${TARGET:-}"
+if [ -z "$TARGET" ]; then
+    echo "Error: no K9 file or directory specified" >&2
+    echo "Usage: k9-runner <file.k9.ncl>" >&2
+    exit 2
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# K9 LEVEL DETECTION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Detect the security level from K9 file pedigree section.
+detect_level() {
+    local file="$1"
+
+    # Must have K9! magic header
+    if ! head -1 "$file" | grep -q '^K9!'; then
+        echo "error"
+        return
+    fi
+
+    # Look for security level in pedigree
+    local level
+    level=$(grep -oP 'level\s*=\s*"\K[^"]+' "$file" 2>/dev/null || echo "")
+
+    case "$level" in
+        kennel|Kennel|0) echo "kennel" ;;
+        yard|Yard|1)     echo "yard" ;;
+        hunt|Hunt|2)     echo "hunt" ;;
+        *)               echo "kennel" ;;  # Default to safest level
+    esac
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LIST MODE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+if [ "$MODE" = "list" ]; then
+    dir="${TARGET:-.}"
+    if [ ! -d "$dir" ]; then
+        echo "Error: not a directory: $dir" >&2
+        exit 2
+    fi
+
+    echo -e "${BOLD}K9 contractiles in ${dir}${RESET}"
+    echo ""
+    printf "  %-40s  %-8s  %s\n" "FILE" "LEVEL" "STATUS"
+    printf "  %-40s  %-8s  %s\n" "────" "─────" "──────"
+
+    found=0
+    while IFS= read -r -d '' k9_file; do
+        found=$((found + 1))
+        name=$(basename "$k9_file")
+        level=$(detect_level "$k9_file")
+        case "$level" in
+            kennel) colour="$GREEN";  icon="[safe]" ;;
+            yard)   colour="$YELLOW"; icon="[eval]" ;;
+            hunt)   colour="$RED";    icon="[exec]" ;;
+            *)      colour="$RED";    icon="[ERR!]" ;;
+        esac
+        printf "  %-40s  ${colour}%-8s${RESET}  %s\n" "$name" "$level" "$icon"
+    done < <(find "$dir" -name '*.k9.ncl' -print0 | sort -z)
+
+    echo ""
+    echo "  Found $found K9 file(s)"
+    exit 0
+fi
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RUN MODE
+# ═══════════════════════════════════════════════════════════════════════════════
+
+if [ ! -f "$TARGET" ]; then
+    echo "Error: file not found: $TARGET" >&2
+    exit 2
+fi
+
+if [[ "$TARGET" != *.k9.ncl ]]; then
+    echo "Error: not a K9 file (must end in .k9.ncl): $TARGET" >&2
+    exit 2
+fi
+
+# Detect or force level
+if [ -n "$FORCE_LEVEL" ]; then
+    LEVEL="$FORCE_LEVEL"
+else
+    LEVEL=$(detect_level "$TARGET")
+fi
+
+if [ "$LEVEL" = "error" ]; then
+    echo -e "${RED}Error: invalid K9 file (missing K9! magic header)${RESET}" >&2
+    exit 1
+fi
+
+echo -e "${BOLD}k9-runner v${VERSION}${RESET} — $(basename "$TARGET")"
+echo -e "  Level: ${BOLD}${LEVEL}${RESET}"
+$DRY_RUN && echo -e "  Mode:  ${YELLOW}dry-run${RESET}"
+echo ""
+
+case "$LEVEL" in
+    kennel)
+        # Kennel: data-only export. No evaluation, no side effects.
+        echo -e "${GREEN}Kennel${RESET}: exporting data (no evaluation)..."
+        if $DRY_RUN; then
+            echo "  Would run: nickel export $TARGET"
+        else
+            nickel export "$TARGET" 2>&1
+        fi
+        ;;
+
+    yard)
+        # Yard: Nickel evaluation with contracts. No shell execution.
+        echo -e "${YELLOW}Yard${RESET}: evaluating with contracts..."
+        if $DRY_RUN; then
+            echo "  Would run: nickel typecheck $TARGET"
+            echo "  Would run: nickel export $TARGET"
+        else
+            echo "  Typechecking..."
+            if nickel typecheck "$TARGET" 2>&1; then
+                echo -e "  ${GREEN}Typecheck passed${RESET}"
+            else
+                echo -e "  ${RED}Typecheck FAILED${RESET}" >&2
+                exit 1
+            fi
+            echo "  Exporting..."
+            nickel export "$TARGET" 2>&1
+        fi
+        ;;
+
+    hunt)
+        # Hunt: full system access. Requires side_effects declaration.
+        echo -e "${RED}Hunt${RESET}: full execution mode"
+
+        # Check for side_effects declaration
+        if ! grep -q 'side_effects\s*=' "$TARGET"; then
+            echo -e "${RED}Error: Hunt-level K9 files must declare side_effects${RESET}" >&2
+            exit 1
+        fi
+
+        # Extract Just recipes from the K9 file
+        recipes=$(grep -oP 'recipe\s*=\s*"\K[^"]+' "$TARGET" 2>/dev/null || echo "")
+
+        if [ -z "$recipes" ]; then
+            echo "  No Just recipes declared — evaluating with contracts only."
+            if $DRY_RUN; then
+                echo "  Would run: nickel export $TARGET"
+            else
+                nickel export "$TARGET" 2>&1
+            fi
+        else
+            echo "  Recipes to execute:"
+            for recipe in $recipes; do
+                echo "    - just $recipe"
+            done
+            echo ""
+
+            if $DRY_RUN; then
+                echo "  (dry-run — no recipes executed)"
+            else
+                for recipe in $recipes; do
+                    echo -e "  Running: ${BOLD}just $recipe${RESET}"
+                    just "$recipe" 2>&1 || {
+                        echo -e "  ${RED}Recipe failed: $recipe${RESET}" >&2
+                        exit 1
+                    }
+                done
+            fi
+        fi
+        ;;
+
+    *)
+        echo "Error: unknown level: $LEVEL" >&2
+        exit 2
+        ;;
+esac
+
+echo ""
+echo -e "${GREEN}Done.${RESET}"

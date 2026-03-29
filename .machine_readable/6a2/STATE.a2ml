@@ -3,19 +3,22 @@
 
 [metadata]
 project = "nickel-augmentation"
-version = "0.2.0"
-last-updated = "2026-03-16"
+version = "0.3.0"
+last-updated = "2026-03-29"
 status = "active"
 
 [project-context]
 name = "nickel-augmentation"
-completion-percentage = 55
-phase = "Library and tooling build-out"
+completion-percentage = 75
+phase = "Integration testing and runner build-out"
 
 [components]
 augmented = "Library modules (rsr, security, ci, infra, prelude) + examples typechecking"
-config-reporter = "CLI auditor with 9 rules, JSON output, exit codes"
+config-reporter = "CLI auditor with 16 rules (+7 new: CTR-001/002, WF-001/002, SEC-003, DB-001), JSON output, exit codes"
 contractiles = "K9 templates (kennel/yard/hunt) and must/trust/dust/lust stable"
+k9-runner = "K9 execution engine with level detection, dry-run, list mode, recipe dispatch"
+integration-tests = "29 tests: library typecheck, example export, rule detection, K9 structure, JSON output"
 
 [recent-changes]
+"2026-03-29" = "Added 7 new reporter rules (container, workflow, secrets, DB), K9 runner, 29 integration tests (all passing)"
 "2026-03-16" = "Created augmented/lib/ (5 modules), built config-reporter CLI, fixed SPDX typos, wired Justfile"
