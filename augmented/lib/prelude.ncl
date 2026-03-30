@@ -11,4 +11,5 @@
   security = import "./security.ncl",
   ci = import "./ci.ncl",
   infra = import "./infra.ncl",
+  proven = import "./proven.ncl",
 }
