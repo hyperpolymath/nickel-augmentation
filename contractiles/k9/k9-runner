@@ -19,10 +19,11 @@
 
 set -euo pipefail
 
-VERSION="0.1.0"
+VERSION="1.0.0"
 DRY_RUN=false
 FORCE_LEVEL=""
 MODE="run"
+NO_VERIFY=false
 
 # Colours
 if [ -t 1 ]; then
@@ -38,9 +39,10 @@ fi
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --dry-run)   DRY_RUN=true; shift ;;
-        --level)     FORCE_LEVEL="$2"; shift 2 ;;
-        --list)      MODE="list"; shift ;;
+        --dry-run)    DRY_RUN=true; shift ;;
+        --no-verify)  NO_VERIFY=true; shift ;;
+        --level)      FORCE_LEVEL="$2"; shift 2 ;;
+        --list)       MODE="list"; shift ;;
         --help|-h)
             echo "k9-runner v${VERSION} — Execute K9 contractile files"
             echo ""
@@ -49,6 +51,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  --level <kennel|yard|hunt>  Force security level"
             echo "  --dry-run                   Show what would happen"
+            echo "  --no-verify                 Skip signature verification (development only)"
             echo "  --list                      List K9 files with their levels"
             echo "  --help, -h                  Show this help"
             echo ""
@@ -193,7 +196,8 @@ case "$LEVEL" in
         ;;
 
     hunt)
-        # Hunt: full system access. Requires side_effects declaration.
+        # Hunt: full system access. Requires side_effects declaration and
+        # optional GPG detached signature verification.
         echo -e "${RED}Hunt${RESET}: full execution mode"
 
         # Check for side_effects declaration
@@ -201,6 +205,62 @@ case "$LEVEL" in
             echo -e "${RED}Error: Hunt-level K9 files must declare side_effects${RESET}" >&2
             exit 1
         fi
+
+        # ── Signature verification ────────────────────────────────────
+        # Hunt-level K9 files may declare `signature_required = true` in
+        # their pedigree. When set, we look for a detached GPG signature
+        # file at $TARGET.sig and verify it before execution.
+
+        SIG_REQUIRED=false
+        if grep -qE 'signature_required\s*=\s*true' "$TARGET"; then
+            SIG_REQUIRED=true
+        fi
+
+        SIG_FILE="${TARGET}.sig"
+        SIG_STATUS="unsigned"
+
+        if [ -f "$SIG_FILE" ]; then
+            # Detached signature exists — attempt verification
+            if $NO_VERIFY; then
+                echo -e "  ${YELLOW}WARN: --no-verify set, skipping signature check${RESET}"
+                SIG_STATUS="skipped"
+            elif $DRY_RUN; then
+                echo -e "  ${CYAN}INFO: Would verify: gpg --verify \"$SIG_FILE\" \"$TARGET\"${RESET}"
+                SIG_STATUS="dry-run"
+            else
+                echo "  Verifying detached signature..."
+                if gpg --verify "$SIG_FILE" "$TARGET" 2>&1; then
+                    echo -e "  ${GREEN}Signature verified OK${RESET}"
+                    SIG_STATUS="verified"
+                else
+                    echo -e "  ${RED}Error: Signature verification FAILED${RESET}" >&2
+                    echo -e "  ${RED}The file $SIG_FILE does not match $TARGET${RESET}" >&2
+                    exit 1
+                fi
+            fi
+        else
+            # No .sig file present
+            if $SIG_REQUIRED; then
+                if $NO_VERIFY; then
+                    echo -e "  ${YELLOW}WARN: signature_required=true but --no-verify set; proceeding without signature${RESET}"
+                    SIG_STATUS="skipped"
+                elif $DRY_RUN; then
+                    echo -e "  ${CYAN}INFO: signature_required=true but $SIG_FILE not found${RESET}"
+                    SIG_STATUS="missing"
+                else
+                    echo -e "${RED}Error: Hunt-level K9 requires signature but $SIG_FILE not found${RESET}" >&2
+                    echo -e "${RED}Sign with: gpg --detach-sign \"$TARGET\"${RESET}" >&2
+                    exit 1
+                fi
+            else
+                if $DRY_RUN; then
+                    echo -e "  ${CYAN}INFO: No signature file ($SIG_FILE) — signature not required${RESET}"
+                fi
+                SIG_STATUS="not-required"
+            fi
+        fi
+
+        echo -e "  Signature: ${BOLD}${SIG_STATUS}${RESET}"
 
         # Extract Just recipes from the K9 file
         recipes=$(grep -oP 'recipe\s*=\s*"\K[^"]+' "$TARGET" 2>/dev/null || echo "")

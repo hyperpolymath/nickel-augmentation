@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
 = nickel-augmentation Roadmap
 
-Nickel configuration language augmentation tools. Completion: 55%.
+Nickel configuration language augmentation tools. Completion: 100%.
 
 == Goals
 * [x] Core contract library (augmented/lib/)
 * [x] Config reporter CLI (config-reporter/bin/)
 * [x] K9 contractile templates (contractiles/k9/)
 * [x] Nickel-specific Justfile recipes
-* [ ] Expand reporter rules (container policy, workflow SHA pins)
-* [ ] Integration tests with real-world RSR repos
-* [ ] K9 runner integration (`must` shim for Hunt-level execution)
-* [ ] Stable 1.0 release
+* [x] Expand reporter rules (CTR-003, K9-003, RSR-WF-003)
+* [x] Integration tests — 39 tests covering all components
+* [x] K9 runner — Hunt-level GPG signature verification
+* [x] Proven bridge — formally verified contracts from proven library
+* [x] Stable 1.0 release

@@ -23,7 +23,7 @@ set -euo pipefail
 # CONFIGURATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
-VERSION="0.1.0"
+VERSION="1.0.0"
 OUTPUT_JSON=false
 TARGET_DIR="."
 
@@ -71,6 +71,9 @@ while [[ $# -gt 0 ]]; do
             echo "  SEC-003    No hardcoded secrets"
             echo "  DB-001     Database SSL mode is secure"
             echo "  TYPE-001   Nickel typecheck passes"
+            echo "  CTR-003    Containerfile FROM uses cgr.dev/chainguard/ with @sha256:"
+            echo "  K9-003     Hunt-level K9 files must declare side_effects"
+            echo "  RSR-WF-003 Required RSR workflows present in .github/workflows/"
             exit 0
             ;;
         -*)
@@ -239,12 +242,66 @@ for ncl_file in "${NCL_FILES[@]}"; do
         fi
     fi
 
+    # ── K9-003: Hunt K9 must declare side_effects ─────────────────────
+    if $is_k9; then
+        k9_level=$(grep -oP 'level\s*=\s*"\K[^"]+' "$ncl_file" 2>/dev/null || echo "")
+        if [[ "$k9_level" == "hunt" || "$k9_level" == "Hunt" || "$k9_level" == "2" ]]; then
+            if ! grep -q 'side_effects\s*=' "$ncl_file"; then
+                finding "$ncl_file" "error" "K9-003" "Hunt-level K9 must declare side_effects"
+                file_ok=false
+            fi
+        fi
+    fi
+
     if $file_ok; then
         PASSED=$((PASSED + 1))
     else
         FAILED=$((FAILED + 1))
     fi
 done
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CTR-003: Containerfile base image provenance
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Scan for Containerfiles in the target directory and verify FROM lines
+# use cgr.dev/chainguard/ images with @sha256: digest pins.
+while IFS= read -r -d '' cfile; do
+    while IFS= read -r from_line; do
+        # Skip empty lines and comments
+        [[ -z "$from_line" ]] && continue
+        # Extract the image reference (after FROM, before AS)
+        image_ref=$(echo "$from_line" | sed -E 's/^FROM\s+//;s/\s+AS\s+.*//i;s/\s*$//')
+        if [[ "$image_ref" != cgr.dev/chainguard/* ]]; then
+            finding "$cfile" "error" "CTR-003" "FROM image must use cgr.dev/chainguard/ (found: $image_ref)"
+        elif [[ "$image_ref" != *@sha256:* ]]; then
+            finding "$cfile" "warning" "CTR-003" "FROM image should use @sha256: digest pin (found: $image_ref)"
+        fi
+    done < <(grep -E '^FROM\s' "$cfile" 2>/dev/null)
+done < <(find "$TARGET_DIR" -name 'Containerfile' -print0 2>/dev/null)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RSR-WF-003: Required RSR workflows
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Check that the target directory (or its parent repo) has the required
+# RSR workflows in .github/workflows/. This is a warning, not an error,
+# because the reporter may be run on a subdirectory.
+WORKFLOW_DIR=""
+if [ -d "$TARGET_DIR/.github/workflows" ]; then
+    WORKFLOW_DIR="$TARGET_DIR/.github/workflows"
+elif [ -d "$(git -C "$TARGET_DIR" rev-parse --show-toplevel 2>/dev/null)/.github/workflows" ]; then
+    WORKFLOW_DIR="$(git -C "$TARGET_DIR" rev-parse --show-toplevel)/.github/workflows"
+fi
+
+if [ -n "$WORKFLOW_DIR" ]; then
+    REQUIRED_WORKFLOWS=("hypatia-scan.yml" "codeql.yml" "scorecard.yml" "quality.yml" "mirror.yml")
+    for wf in "${REQUIRED_WORKFLOWS[@]}"; do
+        if [ ! -f "$WORKFLOW_DIR/$wf" ]; then
+            finding "$WORKFLOW_DIR" "warning" "RSR-WF-003" "Missing required RSR workflow: $wf"
+        fi
+    done
+fi
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SUMMARY

@@ -11,5 +11,9 @@
   security = import "./security.ncl",
   ci = import "./ci.ncl",
   infra = import "./infra.ncl",
-  proven = import "./proven.ncl",
+
+  # proven — Formally verified safety contracts from the proven library.
+  # Access via aug.proven.SafePath, aug.proven.SafeEmail, etc.
+  # Check aug.proven.has_proven before relying on verified guarantees.
+  proven = import "./proven-bridge.ncl",
 }

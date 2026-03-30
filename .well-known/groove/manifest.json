@@ -1,0 +1,34 @@
+{
+  "$schema": "https://github.com/hyperpolymath/groove-protocol/raw/main/schema/manifest.schema.json",
+  "groove_version": "1.0",
+  "service": {
+    "name": "nickel-augmentation",
+    "version": "1.0.0",
+    "description": "Nickel configuration language augmentation tools for RSR-compliant projects",
+    "type": "cli-tool",
+    "license": "PMPL-1.0-or-later"
+  },
+  "capabilities": {
+    "provides": [
+      "config-validation",
+      "contract-library",
+      "k9-contractiles",
+      "rsr-compliance-audit"
+    ],
+    "consumes": [
+      "nickel-runtime",
+      "proven-library"
+    ]
+  },
+  "endpoints": [],
+  "health": {
+    "method": "command",
+    "command": "nickel --version",
+    "interval_seconds": 300
+  },
+  "metadata": {
+    "author": "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>",
+    "repository": "https://github.com/hyperpolymath/nickel-augmentation",
+    "verisimdb": null
+  }
+}

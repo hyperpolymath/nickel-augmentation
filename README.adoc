@@ -47,6 +47,27 @@ just test
 just run augmented/examples/nickel/build.ncl
 ----
 
+== Proven Bridge
+
+The `augmented/lib/proven-bridge.ncl` module connects nickel-augmentation to the https://github.com/hyperpolymath/proven[proven] formally verified safety library. It re-exports key contracts that are backed by Idris2 dependent-type proofs via Zig FFI.
+
+[source,nickel]
+----
+let aug = import "./lib/prelude.ncl" in
+{
+  # Check availability
+  verified | Bool = aug.proven.has_proven,
+
+  # Use proven contracts
+  safe_path = aug.proven.SafePath,
+  safe_email = aug.proven.SafeEmail,
+  safe_string = aug.proven.SafeString,
+  safe_math = aug.proven.SafeMath,
+}
+----
+
+Available modules: `SafeUrl`, `SafeCrypto`, `SafeVersion`, `SafePath`, `SafeEmail`, `SafeString`, `SafeMath`. When the proven repo is not available at the expected sibling path, `has_proven` reports `false` and the prelude import will fail at typecheck time (use the non-proven contracts in `security.ncl` as a fallback).
+
 == The Augmentation Boundary
 
 Nickel **augments** existing config — it does not replace governance or runtime systems:

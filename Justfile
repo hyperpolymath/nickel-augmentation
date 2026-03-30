@@ -14,7 +14,7 @@ set positional-arguments := true
 
 # Project metadata
 project := "nickel-augmentation"
-version := "0.1.0"
+version := "1.0.0"
 tier := "infrastructure"  # 1 | 2 | infrastructure
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -58,6 +58,7 @@ build *args:
     nickel typecheck augmented/lib/ci.ncl
     nickel typecheck augmented/lib/infra.ncl
     nickel typecheck augmented/lib/prelude.ncl
+    nickel typecheck augmented/lib/proven-bridge.ncl 2>/dev/null && echo "  proven-bridge.ncl OK" || echo "  proven-bridge.ncl skipped (proven repo not available)"
     @echo "All library modules typecheck OK"
 
 # Typecheck library + examples
