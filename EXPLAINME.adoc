@@ -1,24 +1,147 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
+// Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 = nickel-augmentation — Show Me The Receipts
 :toc:
+:toclevels: 3
 :icons: font
 
-The README makes claims. This file backs them up.
+The README makes claims. This file backs them up with code paths, caveats, and honest gaps.
+
+== Claim 1: Build-Time Enforcement of Language Policy and Security Policy
 
 [quote, README]
 ____
-Nickel configuration language tools and extensions for https://github.com/hyperpolymath/rhodium-standard-repositories[RSR]-compliant projects. Provides typed, contract-validated configuration that enforces language policy, security policy, and infrastructure standards at build time.
+Provides typed, contract-validated configuration that enforces language policy, security policy,
+and infrastructure standards at build time.
 ____
+
+*How it works:* `augmented/lib/rsr.ncl` defines Nickel contracts that are evaluated at `nickel
+export` time — which runs during `just build` and `just test`. The `AllowedLanguage` contract
+uses `std.contract.from_predicate` to check that a declared language string appears in the
+hardcoded RSR allowlist (rescript, rust, gleam, elixir, deno, bash, javascript, nickel, guile,
+julia, ocaml, haskell, ada, idris2, zig, v). Any value outside this list causes Nickel to fail
+with a contract violation at build time, before the configuration is ever deployed.
+`augmented/lib/security.ncl` adds analogous contracts for SPDX identifiers, HTTPS-only URL
+enforcement, and no-MD5/no-SHA1 checks. The prelude (`augmented/lib/prelude.ncl`) re-exports all
+modules so a consumer writes `let aug = import "./lib/prelude.ncl" in { lang | aug.rsr.AllowedLanguage }`.
+
+*Honest caveat:* Nickel contracts run at `nickel export` time. They do NOT run at Elixir/Rust
+compilation time, and they do NOT block `git commit` unless the project's justfile or CI workflow
+explicitly runs `nickel export` as a gate. A project that never calls `just build` can silently
+bypass all contracts.
+
+== Claim 2: Formally Verified Contracts via the Proven Bridge
+
+[quote, README]
+____
+The `augmented/lib/proven-bridge.ncl` module connects nickel-augmentation to the proven formally
+verified safety library. It re-exports key contracts that are backed by Idris2 dependent-type
+proofs via Zig FFI.
+____
+
+*How it works:* `augmented/lib/proven-bridge.ncl` attempts to `import` contract definitions from
+the `proven` sibling repository. The `has_proven` field reports `true` or `false` depending on
+whether the sibling path resolves. When it resolves, contracts such as `SafePath`, `SafeEmail`,
+`SafeUrl`, `SafeCrypto`, `SafeVersion`, `SafeString`, and `SafeMath` carry Idris2-proven
+correctness guarantees: their predicates are derived from formally verified Zig FFI functions
+rather than ad-hoc string matching. When the bridge is unavailable, `has_proven` is `false` and
+callers should fall back to the unverified contracts in `augmented/lib/security.ncl`.
+
+*Honest caveat:* The proven bridge is a conditional integration. Its strength depends on the
+`proven` repo being co-located and at the expected path. The Idris2 proofs and Zig FFI layer live
+in `proven`, not here; this repo only imports them. If `proven` is not present, the bridge
+degrades silently (no error, just `has_proven = false`).
+
+== Dogfooded Across The Account
+
+[cols="1,2,1"]
+|===
+| Repo | How nickel-augmentation is used | Status
+
+| `kea`
+| `stapeln.toml` and Nickel configuration use RSR contracts from augmented/lib
+| Active
+
+| `laminar`
+| Nickel config files validated against rsr.ncl and security.ncl contracts
+| Active
+
+| `laniakea`
+| RSR metadata config validated via augmented contracts in CI
+| Active
+
+| `seamstress`
+| Project metadata Nickel config uses prelude contracts
+| Active
+
+| `developer-ecosystem`
+| nickel-augmentation is the canonical source of RSR Nickel contracts for the ecosystem
+| Active
+
+| `hypatia`
+| Hypatia's neurosymbolic rules reference nickel-augmentation's contract structure for validation
+| Active
+
+| `config-reporter` (this repo)
+| `config-reporter/` CLI audits `.ncl` files for RSR compliance using the same contracts
+| Active
+|===
 
 == File Map
 
-[cols="1,2"]
+[cols="1,3"]
 |===
 | Path | What's There
 
-| `test(s)/` | Test suite
+| `augmented/lib/prelude.ncl`
+| Top-level re-export: `rsr`, `security`, `ci`, `infra`, `proven` — single import for consumers
+
+| `augmented/lib/rsr.ncl`
+| RSR core contracts: `NonEmptyString`, `SemVer`, `AllowedLanguage`, `BannedLanguage`, repo metadata types
+
+| `augmented/lib/security.ncl`
+| Security contracts: SPDX identifier validation, HTTPS-only URLs, hash algorithm policy (no MD5/SHA1)
+
+| `augmented/lib/ci.ncl`
+| CI/CD contracts: workflow presence validation, SHA-pinned action checks, permissions contracts
+
+| `augmented/lib/infra.ncl`
+| Infrastructure contracts: container base image policy (Chainguard), Podman/not-Docker checks
+
+| `augmented/lib/proven-bridge.ncl`
+| Bridge to `proven` sibling repo: exports `has_proven` flag + `SafePath`/`SafeEmail`/`SafeUrl`/etc.
+
+| `augmented/lib/proven.ncl`
+| Fallback proven contracts (used when `proven` sibling is absent)
+
+| `augmented/examples/`
+| Usage examples: annotated Nickel configs demonstrating each contract module
+
+| `augmented/lib/README.adoc`
+| Per-module documentation and the "augmentation boundary" specification
+
+| `config-reporter/src/`
+| Rust CLI source: walks `.ncl` files, runs Nickel typecheck, reports RSR violations
+
+| `config-reporter/bin/`
+| Compiled `config-reporter` binary (gitignored from source; built via `just build`)
+
+| `contractiles/`
+| K9 contractile templates (Kennel/Yard/Hunt) and must/trust/dust/lust policy files
+
+| `tests/`
+| Typecheck + export validation tests run by `just test`
+
+| `Justfile`
+| Recipes: `deps`, `build` (typecheck all modules), `test`, `run <file>`, `panic`
+
+| `TOPOLOGY.md`
+| Architecture map: library, reporter, contractiles relationship and completion dashboard
+
+| `.github/workflows/`
+| RSR-standard CI: CodeQL, Hypatia, Scorecard, quality, mirror workflows
 |===
 
 == Questions?
 
-Open an issue or reach out directly — happy to explain anything in more detail.
+Open an issue or reach out to Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>.
