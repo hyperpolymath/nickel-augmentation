@@ -26,7 +26,7 @@ enforcement, and no-MD5/no-SHA1 checks. The prelude (`augmented/lib/prelude.ncl`
 modules so a consumer writes `let aug = import "./lib/prelude.ncl" in { lang | aug.rsr.AllowedLanguage }`.
 
 *Honest caveat:* Nickel contracts run at `nickel export` time. They do NOT run at Elixir/Rust
-compilation time, and they do NOT block `git commit` unless the project's justfile or CI workflow
+compilation time, and they do NOT block `git commit` unless the project's Justfile or CI workflow
 explicitly runs `nickel export` as a gate. A project that never calls `just build` can silently
 bypass all contracts.
 
