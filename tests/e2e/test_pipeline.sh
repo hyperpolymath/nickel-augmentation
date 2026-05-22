@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # tests/e2e/test_pipeline.sh — End-to-end pipeline tests for nickel-augmentation
@@ -70,7 +70,7 @@ echo -e "${BOLD}1. Construct config from template → typecheck${RESET}"
 # Create a realistic RSR-compliant config using the rsr.ncl and security.ncl contracts.
 # This simulates what a project maintainer would write when describing their repo.
 cat > "$TEMP_DIR/my-project.ncl" << NCLEOF
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 # E2E test: simulated RSR-compliant project config
 
@@ -142,7 +142,7 @@ echo -e "${BOLD}3. Invalid config is caught before export${RESET}"
 
 # Config with banned language and insecure URL — must fail typecheck/eval
 cat > "$TEMP_DIR/bad-project.ncl" << NCLEOF
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 let rsr = import "${LIB_DIR}/rsr.ncl" in
 let sec = import "${LIB_DIR}/security.ncl" in
 {
@@ -161,7 +161,7 @@ fi
 
 # Config with empty name — must fail
 cat > "$TEMP_DIR/empty-name.ncl" << NCLEOF
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 let rsr = import "${LIB_DIR}/rsr.ncl" in
 { name | rsr.NonEmptyString = "" }
 NCLEOF

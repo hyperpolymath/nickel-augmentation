@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 = nickel-augmented
 image:https://img.shields.io/badge/License-PMPL--1.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
 
@@ -31,7 +31,7 @@ let aug = import "./lib/prelude.ncl" in
   project = {
     name | aug.rsr.NonEmptyString = "my-project",
     version | aug.rsr.SemVer = "1.0.0",
-    license | aug.rsr.SpdxLicense = "PMPL-1.0-or-later",
+    license | aug.rsr.SpdxLicense = "MPL-2.0",
   },
 
   api | aug.infra.Service = {
@@ -151,4 +151,4 @@ nickel export examples/nickel/build.ncl
 
 == License
 
-PMPL-1.0-or-later
+MPL-2.0

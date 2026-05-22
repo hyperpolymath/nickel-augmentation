@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # rules.ncl — Audit rules for config-reporter
@@ -18,9 +18,9 @@
     {
       id = "SPDX-002",
       name = "SPDX license is approved",
-      description = "SPDX identifier must be PMPL-1.0-or-later or MPL-2.0 (or third-party preserved)",
+      description = "SPDX identifier must be MPL-2.0 or MPL-2.0 (or third-party preserved)",
       severity = "warning",
-      pattern = "SPDX-License-Identifier: (PMPL-1.0-or-later|MPL-2.0|MIT|Apache-2.0|BSD-[23]-Clause)",
+      pattern = "SPDX-License-Identifier: (MPL-2.0|MPL-2.0|MIT|Apache-2.0|BSD-[23]-Clause)",
     },
     {
       id = "SEC-001",

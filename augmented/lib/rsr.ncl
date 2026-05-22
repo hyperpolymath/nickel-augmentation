@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # rsr.ncl — Core RSR (Rhodium Standard Repository) contracts
@@ -81,7 +81,7 @@
       std.array.elem
         license
         [
-          "PMPL-1.0-or-later",
+          "MPL-2.0",
           "MPL-2.0",
           "MIT",
           "Apache-2.0",
@@ -95,7 +95,7 @@
   # The preferred license for all hyperpolymath original code
   PreferredLicense =
     std.contract.from_predicate (fun license =>
-      license == "PMPL-1.0-or-later"
+      license == "MPL-2.0"
     ),
 
   # Fallback license (for platforms requiring OSI-approved)

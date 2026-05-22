@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # tests/bench/bench_nickel.sh — Benchmarks for Nickel config evaluation
@@ -172,7 +172,7 @@ print_header
 
 for n_fields in 10 50 100 500; do
     # Generate a Nickel record with n_fields numeric entries
-    ncl_content="# SPDX-License-Identifier: PMPL-1.0-or-later
+    ncl_content="# SPDX-License-Identifier: MPL-2.0
 {"
     for (( i=1; i<=n_fields; i++ )); do
         ncl_content+="

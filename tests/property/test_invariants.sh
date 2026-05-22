@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # tests/property/test_invariants.sh — Property invariant tests for Nickel contracts
@@ -157,12 +157,12 @@ if grep -q "RsrMetadata\|RepoMetadata\|Metadata" "$LIB_DIR/rsr.ncl" 2>/dev/null;
         # Missing 'name' field
         assert_fails "RsrMetadata rejects missing name" \
 'let rsr = import "'"$LIB_DIR/rsr.ncl"'" in
-({ version = "1.0.0", license = "PMPL-1.0-or-later", language = "rust" } | rsr.'"$contract_name"')'
+({ version = "1.0.0", license = "MPL-2.0", language = "rust" } | rsr.'"$contract_name"')'
 
         # Missing 'version' field
         assert_fails "RsrMetadata rejects missing version" \
 'let rsr = import "'"$LIB_DIR/rsr.ncl"'" in
-({ name = "my-repo", license = "PMPL-1.0-or-later", language = "rust" } | rsr.'"$contract_name"')'
+({ name = "my-repo", license = "MPL-2.0", language = "rust" } | rsr.'"$contract_name"')'
     else
         skip "RsrMetadata required-fields tests" "could not determine contract name from rsr.ncl"
     fi

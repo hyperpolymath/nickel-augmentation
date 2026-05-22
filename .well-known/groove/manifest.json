@@ -6,7 +6,7 @@
     "version": "1.0.0",
     "description": "Nickel configuration language augmentation tools for RSR-compliant projects",
     "type": "cli-tool",
-    "license": "PMPL-1.0-or-later"
+    "license": "MPL-2.0"
   },
   "capabilities": {
     "provides": [

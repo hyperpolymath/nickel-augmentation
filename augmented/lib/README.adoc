@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: PMPL-1.0-or-later
+// SPDX-License-Identifier: MPL-2.0
 = Nickel Augmentation Library
 :toc: left
 :icons: font
@@ -39,7 +39,7 @@ let security = import "./lib/security.ncl" in
 {
   project = {
     name | rsr.NonEmptyString = "my-project",
-    license | rsr.SpdxLicense = "PMPL-1.0-or-later",
+    license | rsr.SpdxLicense = "MPL-2.0",
     url | security.HttpsUrl = "https://github.com/hyperpolymath/my-project",
   },
 }

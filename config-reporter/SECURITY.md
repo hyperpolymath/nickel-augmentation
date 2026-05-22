@@ -64,4 +64,4 @@ When contributing to this repository:
 
 ## License
 
-This project is licensed under PMPL-1.0-or-later. See the [LICENSE](LICENSE) file for details.
+This project is licensed under MPL-2.0. See the [LICENSE](LICENSE) file for details.

@@ -78,4 +78,4 @@ See [ROADMAP.adoc](ROADMAP.adoc) for planned features and development priorities
 
 ## License
 
-PMPL-1.0-or-later
+MPL-2.0

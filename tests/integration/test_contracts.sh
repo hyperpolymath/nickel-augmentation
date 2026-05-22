@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 #
 # integration tests — Validate Nickel contracts and reporter against real configs.
@@ -128,35 +128,35 @@ check_rule "SPDX-001" "$TEMP_DIR/no-spdx.ncl" "detects missing SPDX header"
 
 # Test SEC-001: HTTP URL
 cat > "$TEMP_DIR/http-url.ncl" << 'EOF'
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 { url = "http://example.com/api" }
 EOF
 check_rule "SEC-001" "$TEMP_DIR/http-url.ncl" "detects http:// URL"
 
 # Test LANG-001: Banned language
 cat > "$TEMP_DIR/banned-lang.ncl" << 'EOF'
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 { target = { language = "typescript" } }
 EOF
 check_rule "LANG-001" "$TEMP_DIR/banned-lang.ncl" "detects banned language"
 
 # Test WF-001: Unpinned action
 cat > "$TEMP_DIR/unpinned.ncl" << 'EOF'
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 { step = { uses = "actions/checkout@v4" } }
 EOF
 check_rule "WF-001" "$TEMP_DIR/unpinned.ncl" "detects unpinned action"
 
 # Test SEC-003: Hardcoded secret
 cat > "$TEMP_DIR/secret.ncl" << 'EOF'
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 { api_key = "ghp_1234567890abcdefghijklmnop" }
 EOF
 check_rule "SEC-003" "$TEMP_DIR/secret.ncl" "detects hardcoded secret"
 
 # Test CTR-002: Docker runtime
 cat > "$TEMP_DIR/docker.ncl" << 'EOF'
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 { container = { runtime = "docker" } }
 EOF
 check_rule "CTR-002" "$TEMP_DIR/docker.ncl" "detects docker runtime"
@@ -193,7 +193,7 @@ echo ""
 echo -e "${BOLD}6. JSON output${RESET}"
 
 cat > "$TEMP_DIR/valid.ncl" << 'EOF'
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 { value = 42 }
 EOF
@@ -270,7 +270,7 @@ K9_RUNNER="$PROJECT_ROOT/contractiles/k9/k9-runner"
 # 8a. Create a Hunt K9 file that requires signature but has none
 cat > "$TEMP_DIR/hunt-sig-required.k9.ncl" << 'K9EOF'
 K9! hunt-signature-test
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 {
   pedigree = {
     schema_version = "1.0",
@@ -308,7 +308,7 @@ fi
 # 8d. Hunt without signature_required still works
 cat > "$TEMP_DIR/hunt-no-sig.k9.ncl" << 'K9EOF'
 K9! hunt-no-sig-test
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 {
   pedigree = {
     schema_version = "1.0",
@@ -341,7 +341,7 @@ FROM ubuntu:22.04
 RUN apt-get update
 EOF
 cat > "$TEMP_DIR/ctr003/dummy.ncl" << 'EOF'
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell (hyperpolymath) <j.d.a.jewell@open.ac.uk>
 { value = 1 }
 EOF
@@ -357,7 +357,7 @@ rm -rf "$TEMP_DIR/ctr003"
 mkdir -p "$TEMP_DIR/k9003"
 cat > "$TEMP_DIR/k9003/bad-hunt.k9.ncl" << 'K9EOF'
 K9! bad-hunt-test
-# SPDX-License-Identifier: PMPL-1.0-or-later
+# SPDX-License-Identifier: MPL-2.0
 {
   pedigree = {
     schema_version = "1.0",

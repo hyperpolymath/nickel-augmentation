@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2024 Jonathan D.A. Jewell (hyperpolymath)
-# SPDX-License-Identifier: MIT OR PMPL-1.0-or-later
+# SPDX-License-Identifier: MIT OR MPL-2.0
 
 # Infrastructure configuration example
 # Demonstrates: type-safe secrets references, environment configs
