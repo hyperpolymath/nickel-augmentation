@@ -148,7 +148,7 @@ for ncl_file in "${NCL_FILES[@]}"; do
 
     # ── SPDX-002: Approved license ───────────────────────────────────
     if head -5 "$ncl_file" | grep -q "SPDX-License-Identifier:"; then
-        if ! head -5 "$ncl_file" | grep -qE "SPDX-License-Identifier:.*(PMPL-1\.0-or-later|MPL-2\.0|MIT|Apache-2\.0|BSD-[23]-Clause)"; then
+        if ! head -5 "$ncl_file" | grep -qE "SPDX-License-Identifier:.*(MPL-2\.0|MIT|Apache-2\.0|BSD-[23]-Clause)"; then
             finding "$ncl_file" "warning" "SPDX-002" "SPDX license not in approved set"
             file_ok=false
         fi
