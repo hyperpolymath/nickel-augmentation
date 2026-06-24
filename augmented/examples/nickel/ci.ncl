@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2024 Jonathan D.A. Jewell (hyperpolymath)
-# SPDX-License-Identifier: MIT OR MPL-2.0
+# SPDX-License-Identifier: MPL-2.0 OR MPL-2.0
 
 # CI/CD pipeline configuration example
 # Demonstrates: merge semantics for matrix builds, generates YAML
