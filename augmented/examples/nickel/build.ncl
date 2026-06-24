@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2024 Jonathan D.A. Jewell (hyperpolymath)
-# SPDX-License-Identifier: MIT OR MPL-2.0
+# SPDX-License-Identifier: MPL-2.0 OR MPL-2.0
 
 # Build configuration example for RSR-compliant projects
 # Demonstrates: contracts validating targets and dependencies

@@ -1,5 +1,5 @@
 # SPDX-FileCopyrightText: 2024 Jonathan D.A. Jewell (hyperpolymath)
-# SPDX-License-Identifier: MIT OR MPL-2.0
+# SPDX-License-Identifier: MPL-2.0 OR MPL-2.0
 
 # Shared contracts for RSR-compliant Nickel configurations
 # These contracts enforce the Hyperpolymath language policy at config-time
