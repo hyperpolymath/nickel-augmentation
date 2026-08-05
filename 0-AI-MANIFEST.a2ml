@@ -3,3 +3,20 @@
 @canonical-locations { scm-files: ".machine_readable/", ci-cd: ".github/workflows/" }
 @critical-invariants { rule: "SCM files in .machine_readable/ ONLY" }
 @lifecycle { on-enter: "Read manifest then SCM files", on-exit: "Update .machine_readable/6a2/STATE.a2ml" }
+
+<!-- BEGIN requires-initialisation -->
+
+## PRIORITY ACTION — this repository is not fully initialised
+
+11 substitution token(s) still have no value. **Read
+`REQUIRES_INITIALISATION.md` in the repository root before doing anything
+else here** — it lists every outstanding token, what it means, and which
+files it belongs in.
+
+Do not fabricate values for them, and do not delete the sections that
+contain them to quiet a gate. They are unfilled because they need a
+decision, not because they were overlooked. Resolve what you legitimately
+can, leave the rest, and delete `REQUIRES_INITIALISATION.md` only when
+nothing outstanding remains.
+
+<!-- END requires-initialisation -->
