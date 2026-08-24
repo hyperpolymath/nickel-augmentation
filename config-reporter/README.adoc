@@ -1,64 +1,86 @@
-// SPDX-License-Identifier: CC-BY-SA-4.0
-// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
-= Nickel Config Reporter
-image:https://img.shields.io/badge/License-MPL--2.0-blue.svg[License: PMPL-1.0,link="https://github.com/hyperpolymath/palimpsest-license"]
+== nickel-config-reporter
 
-:toc: auto
-:icons: font
+image:https://img.shields.io/badge/License-MPL–2.0-blue.svg[License:
+PMPL-1.0,link="`https://github.com/hyperpolymath/palimpsest-license`"]
 
-Audits `.ncl` files for https://github.com/hyperpolymath/rhodium-standard-repositories[RSR] compliance. Part of the https://github.com/hyperpolymath/nickel-augmentation[nickel-augmentation] monorepo.
+A configuration reporter utility with multi-platform SCM mirroring
+infrastructure.
 
-== What It Checks
+=== Overview
 
-[cols="1,1,2"]
-|===
-|Rule |Severity |Description
+This repository provides automated mirroring infrastructure to
+synchronize code across multiple Git hosting platforms:
 
-|SPDX-001 |Error |SPDX-License-Identifier in first 5 lines
-|SPDX-002 |Warning |License is in the approved set (PMPL, MPL-2.0, MIT, etc.)
-|SEC-001 |Error |No `http://` URLs — HTTPS only
-|SEC-002 |Warning |No weak hashes (MD5, SHA-1)
-|LANG-001 |Error |No banned languages in build targets
-|K9-001 |Error |K9 files start with `K9!` magic header
-|K9-002 |Error |K9 files have a `pedigree` section
-|META-001 |Info |Copyright header present
-|TYPE-001 |Error |Nickel typecheck passes
-|===
+* *GitHub* (primary)
+* *GitLab*
+* *Codeberg*
+* *Bitbucket*
 
-== Usage
+=== Features
+
+* *Hub-and-Spoke Mirroring*: GitHub serves as the primary repository
+with automatic mirroring to secondary platforms
+* *Security-First Design*: SSH host key verification, pinned action
+versions, minimal permissions
+* *Conditional Mirroring*: Enable/disable individual mirrors via
+repository variables
+* *Concurrency Safe*: Prevents race conditions during simultaneous push
+events
+
+=== Setup
+
+==== Prerequisites
+
+[arabic]
+. GitHub repository with Actions enabled
+. SSH key pairs generated for each mirror target
+. Organization or repository secrets configured
+
+==== Configuration
+
+===== 1. Generate SSH Keys
+
+For each mirror platform, generate a dedicated SSH key pair:
 
 [source,bash]
 ----
-# Scan current directory
-./bin/config-reporter
-
-# Scan a specific directory
-./bin/config-reporter /path/to/project
-
-# JSON report (for CI integration)
-./bin/config-reporter --json /path/to/project > report.json
-
-# Help
-./bin/config-reporter --help
+ssh-keygen -t ed25519 -C "mirror-gitlab" -f ~/.ssh/mirror_gitlab
+ssh-keygen -t ed25519 -C "mirror-codeberg" -f ~/.ssh/mirror_codeberg
+ssh-keygen -t ed25519 -C "mirror-bitbucket" -f ~/.ssh/mirror_bitbucket
 ----
 
-== Exit Codes
+===== 2. Add Public Keys to Mirror Platforms
 
-[cols="1,3"]
-|===
-|Code |Meaning
+Add the public key (`+.pub+` file contents) to each platform: -
+*GitLab*: Settings > SSH Keys - *Codeberg*: Settings > SSH/GPG Keys -
+*Bitbucket*: Personal Settings > SSH Keys
 
-|0 |All checks passed (warnings and info allowed)
-|1 |Errors found
-|2 |Usage error (bad arguments, directory not found)
-|===
+===== 3. Configure GitHub Secrets
 
-== Dependencies
+Add the private keys as secrets in your GitHub repository or
+organization: - `+GITLAB_SSH_KEY+` - `+CODEBERG_SSH_KEY+` -
+`+BITBUCKET_SSH_KEY+`
 
-- `nickel` (for TYPE-001 typecheck rule)
-- `jq` (for `--json` output)
-- `bash` 4+ (for `mapfile`)
+===== 4. Enable Mirrors
 
-== License
+Set repository variables to enable desired mirrors: -
+`+GITLAB_MIRROR_ENABLED+` = `+true+` - `+CODEBERG_MIRROR_ENABLED+` =
+`+true+` - `+BITBUCKET_MIRROR_ENABLED+` = `+true+`
+
+=== Usage
+
+Once configured, the mirroring workflow runs automatically on: - Push to
+`+main+` or `+master+` branches - Manual workflow dispatch from GitHub
+Actions
+
+=== Security
+
+See SECURITY.md for security policies and best practices.
+
+=== Roadmap
+
+See ROADMAP.adoc for planned features and development priorities.
+
+=== License
 
 MPL-2.0
