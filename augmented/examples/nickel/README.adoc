@@ -43,4 +43,4 @@ replace:
 * `+STATE.scm+` / `+META.scm+` → Guile Scheme (RSR governance)
 * `+guix.scm+` / `+flake.nix+` → Native package managers
 * Runtime config → Environment variables / JSON
-* Application logic → ReScript / Rust
+* Application logic → AffineScript / Rust
