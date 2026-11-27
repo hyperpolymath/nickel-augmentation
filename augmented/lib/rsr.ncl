@@ -33,6 +33,7 @@
       std.array.elem
         lang
         [
+          "affinescript",
           "rescript",
           "rust",
           "gleam",
