@@ -76,7 +76,7 @@ Available modules: `SafeUrl`, `SafeCrypto`, `SafeVersion`, `SafePath`, `SafeEmai
 Nickel **augments** existing config — it does not replace governance or runtime systems:
 
 - **Nickel generates, Scheme governs** — `.machine_readable/6a2/STATE.a2ml` remains the source of truth
-- **Contracts, not code** — if you're writing loops, use ReScript/Rust instead
+- **Contracts, not code** — if you're writing loops, use AffineScript/Rust instead
 - **Build-time validation** — catches config errors before deployment
 
 See link:augmented/README.adoc[augmented/README.adoc] for the full boundary specification.
